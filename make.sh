@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -e
 SELF_DIR="$(dirname $(readlink -f $0))"
@@ -40,8 +40,8 @@ case "$(uname -s)" in
     * )         GL_LIBS="-lopengl" ;;
 esac
 
-DEFAULT_CXXFLAGS="-std=c++11 -I ../include -shared -fPIC -s -O3 $GLFW_CFLAGS $GL_LIBS"
-DEFAULT_LDFLAGS="-ldl $GLFW_LDFLAGS"
+DEFAULT_CXXFLAGS="-std=c++11 -I ../include -shared -fPIC -s -O3 $GLFW_CFLAGS"
+DEFAULT_LDFLAGS="-ldl $GLFW_LDFLAGS $GL_LIBS"
 DEFAULT_CXX=g++
 
 set_flag CXX $DEFAULT_CXX
