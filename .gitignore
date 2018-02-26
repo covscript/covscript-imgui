@@ -39,3 +39,6 @@ include/sparsepp
 
 # Builds
 build/
+
+# ImGUI Files
+imgui.ini

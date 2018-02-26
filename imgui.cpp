@@ -69,7 +69,7 @@ namespace imgui_cs {
 		}
 		bool window_should_close()
 		{
-			return !glfwWindowShouldClose(window);
+			return glfwWindowShouldClose(window);
 		}
 		void prepare()
 		{
@@ -94,16 +94,17 @@ namespace imgui_cs {
 static cs::extension imgui_ext;
 static cs::extension imgui_app_ext;
 static cs::extension_t imgui_app_ext_shared = cs::make_shared_extension(imgui_app_ext);
+using application_t = std::shared_ptr<imgui_cs::application>;
 
 namespace cs_impl {
 	template <>
-	cs::extension_t &get_ext<imgui_cs::application>()
+	cs::extension_t &get_ext<application_t>()
 	{
 		return imgui_app_ext_shared;
 	}
 
 	template <>
-	constexpr const char *get_name_of_type<imgui_cs::application>()
+	constexpr const char *get_name_of_type<application_t>()
 	{
 		return "cs::imgui::application";
 	}
@@ -111,7 +112,6 @@ namespace cs_impl {
 
 namespace imgui_cs_ext {
 	using namespace cs;
-	using application_t = std::shared_ptr<imgui_cs::application>;
 // ImGui Application
 	application_t app(number width, number height, const string &title)
 	{
