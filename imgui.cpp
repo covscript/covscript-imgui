@@ -24,10 +24,10 @@
 #include <covscript/cni.hpp>
 
 // ImGUI Common Header
-#include <imgui/imgui.h>
+#include <imgui.h>
 
 // ImGUI GLFW3 Implement
-#include <imgui/glfw_gl2.h>
+#include <imgui_impl_glfw_gl2.h>
 #include <GLFW/glfw3.h>
 
 // ImGUI Wrapper
@@ -144,11 +144,6 @@ namespace imgui_cs_ext {
 		return ImVec2(a, b);
 	}
 
-	ImVec3 vec3(number a, number b, number c)
-	{
-		return ImVec3(a, b, c);
-	}
-
 	ImVec4 vec4(number a, number b, number c, number d)
 	{
 		return ImVec4(a, b, c, d);
@@ -156,7 +151,7 @@ namespace imgui_cs_ext {
 
 	void add_font(const string &str, number size)
 	{
-		ImGui::GetIO().Fonts->addFontFromFileTTF(str.c_str(), size);
+		ImGui::GetIO().Fonts->AddFontFromFileTTF(str.c_str(), size);
 	}
 
 	void set_next_window_pos(const ImVec2 &pos)
@@ -193,12 +188,12 @@ namespace imgui_cs_ext {
 
 	void color_edit3(const string &str, ImVec4 &color)
 	{
-		ImGui::ColorEdit3(str.c_str(), static_cast<float *>(&color));
+		ImGui::ColorEdit3(str.c_str(), reinterpret_cast<float *>(&color));
 	}
 
 	void color_edit4(const string &str, ImVec4 &color)
 	{
-		ImGui::ColorEdit4(str.c_str(), static_cast<float *>(&color));
+		ImGui::ColorEdit4(str.c_str(), reinterpret_cast<float *>(&color));
 	}
 
 	void check_box(const string &str, bool &val)
@@ -228,7 +223,6 @@ namespace imgui_cs_ext {
 		// Main Function
 		imgui_ext.add_var("app", var::make_protect<callable>(cni(app)));
 		imgui_ext.add_var("vec2", var::make_protect<callable>(cni(vec2)));
-		imgui_ext.add_var("vec3", var::make_protect<callable>(cni(vec3)));
 		imgui_ext.add_var("vec4", var::make_protect<callable>(cni(vec4)));
 		imgui_ext.add_var("add_font", var::make_protect<callable>(cni(add_font)));
 		imgui_ext.add_var("set_next_window_pos", var::make_protect<callable>(cni(set_next_window_pos)));
