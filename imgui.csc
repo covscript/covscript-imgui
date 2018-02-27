@@ -1,5 +1,6 @@
 import imgui
-var app=imgui.window_application(0.75*imgui.get_monitor_width(0),0.75*imgui.get_monitor_height(0),"CovScript ImGUI Example")
+var app=imgui.fullscreen_application(0,"CovScript ImGUI Example")
+#var app=imgui.window_application(0.75*imgui.get_monitor_width(0),0.75*imgui.get_monitor_height(0),"CovScript ImGUI Example")
 imgui.add_font("./res/DroidSans.ttf",16)
 imgui.style_color_dark()
 var show_demo_window = true
@@ -21,6 +22,9 @@ while !app.is_closed()
     imgui.same_line()
     imgui.text("counter = "+counter)
     imgui.text("Application average "+1000/imgui.get_framerate()+" ms/frame ("+imgui.get_framerate()+" FPS)")
+    if imgui.button("Exit")
+        break
+    end
     if show_another_window
         imgui.begin("Another Window",show_another_window)
         imgui.text("Hello from another window!")
