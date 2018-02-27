@@ -28,23 +28,27 @@
 
 // ImGUI GLFW3 Implement
 #include <imgui_impl_glfw_gl2.h>
-#include <GLFW/glfw3.h>
 
 // ImGUI Wrapper
 #include <cstdio>
+
 namespace imgui_cs {
 	class application final {
 		static void error_callback(int error, const char *description)
 		{
 			throw cs::lang_error(description);
 		}
+
 		GLFWwindow *window = nullptr;
 		ImVec4 bg_color = {1.0f, 1.0f, 1.0f, 1.0f};
 
 	public:
 		application() = delete;
+
 		application(const application &) = delete;
+
 		application(application &&) noexcept = delete;
+
 		application(std::size_t width, std::size_t height, const std::string &title)
 		{
 			glfwSetErrorCallback(error_callback);
@@ -57,25 +61,30 @@ namespace imgui_cs {
 			ImGui_ImplGlfwGL2_Init(window, true);
 			ImGui::GetIO().NavFlags |= ImGuiNavFlags_EnableKeyboard;
 		}
+
 		~application()
 		{
 			ImGui_ImplGlfwGL2_Shutdown();
 			ImGui::DestroyContext();
 			glfwTerminate();
 		}
+
 		void set_bg_color(const ImVec4 &color)
 		{
 			bg_color = color;
 		}
+
 		bool window_should_close()
 		{
 			return glfwWindowShouldClose(window);
 		}
+
 		void prepare()
 		{
 			glfwPollEvents();
 			ImGui_ImplGlfwGL2_NewFrame();
 		}
+
 		void render()
 		{
 			int display_w, display_h;
@@ -97,13 +106,13 @@ static cs::extension_t imgui_app_ext_shared = cs::make_shared_extension(imgui_ap
 using application_t = std::shared_ptr<imgui_cs::application>;
 
 namespace cs_impl {
-	template <>
+	template<>
 	cs::extension_t &get_ext<application_t>()
 	{
 		return imgui_app_ext_shared;
 	}
 
-	template <>
+	template<>
 	constexpr const char *get_name_of_type<application_t>()
 	{
 		return "cs::imgui::application";
@@ -112,6 +121,7 @@ namespace cs_impl {
 
 namespace imgui_cs_ext {
 	using namespace cs;
+
 // ImGui Application
 	application_t app(number width, number height, const string &title)
 	{
@@ -152,6 +162,26 @@ namespace imgui_cs_ext {
 	void add_font(const string &str, number size)
 	{
 		ImGui::GetIO().Fonts->AddFontFromFileTTF(str.c_str(), size);
+	}
+
+	void style_color_classic()
+	{
+		ImGui::StyleColorsClassic();
+	}
+
+	void style_color_light()
+	{
+		ImGui::StyleColorsLight();
+	}
+
+	void style_color_dark()
+	{
+		ImGui::StyleColorsDark();
+	}
+
+	number get_framerate()
+	{
+		return ImGui::GetIO().Framerate;
 	}
 
 	void set_next_window_pos(const ImVec2 &pos)
@@ -222,9 +252,13 @@ namespace imgui_cs_ext {
 		imgui_app_ext.add_var("render", var::make_protect<callable>(cni(render)));
 		// Main Function
 		imgui_ext.add_var("app", var::make_protect<callable>(cni(app)));
-		imgui_ext.add_var("vec2", var::make_protect<callable>(cni(vec2)));
-		imgui_ext.add_var("vec4", var::make_protect<callable>(cni(vec4)));
+		imgui_ext.add_var("vec2", var::make_protect<callable>(cni(vec2), true));
+		imgui_ext.add_var("vec4", var::make_protect<callable>(cni(vec4), true));
 		imgui_ext.add_var("add_font", var::make_protect<callable>(cni(add_font)));
+		imgui_ext.add_var("style_color_classic", var::make_protect<callable>(cni(style_color_classic)));
+		imgui_ext.add_var("style_color_light", var::make_protect<callable>(cni(style_color_light)));
+		imgui_ext.add_var("style_color_dark", var::make_protect<callable>(cni(style_color_dark)));
+		imgui_ext.add_var("get_framerate", var::make_protect<callable>(cni(get_framerate)));
 		imgui_ext.add_var("set_next_window_pos", var::make_protect<callable>(cni(set_next_window_pos)));
 		imgui_ext.add_var("show_demo_window", var::make_protect<callable>(cni(show_demo_window)));
 		imgui_ext.add_var("begin", var::make_protect<callable>(cni(begin)));
