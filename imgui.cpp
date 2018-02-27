@@ -30,18 +30,43 @@
 #include <imgui_impl_glfw_gl2.h>
 #include <GLFW/glfw3.h>
 
-// ImGUI Wrapper
-#include <cstdio>
-
 namespace imgui_cs {
-	class application final {
+	class glfw_instance final {
 		static void error_callback(int error, const char *description)
 		{
 			throw cs::lang_error(description);
 		}
 
+	public:
+		glfw_instance()
+		{
+			glfwSetErrorCallback(error_callback);
+			if (!glfwInit())
+				throw cs::lang_error("Init OpenGL Error.");
+		}
+
+		glfw_instance(const glfw_instance &) = delete;
+
+		glfw_instance(glfw_instance &&) noexcept = delete;
+
+		~glfw_instance()
+		{
+			glfwTerminate();
+		}
+	};
+
+	class application final {
 		GLFWwindow *window = nullptr;
 		ImVec4 bg_color = {1.0f, 1.0f, 1.0f, 1.0f};
+
+		void init()
+		{
+			glfwMakeContextCurrent(window);
+			glfwSwapInterval(1);
+			ImGui::CreateContext();
+			ImGui_ImplGlfwGL2_Init(window, true);
+			ImGui::GetIO().NavFlags |= ImGuiNavFlags_EnableKeyboard;
+		}
 
 	public:
 		application() = delete;
@@ -50,24 +75,51 @@ namespace imgui_cs {
 
 		application(application &&) noexcept = delete;
 
-		application(std::size_t width, std::size_t height, const std::string &title)
+		application(std::size_t monitor_id, const std::string &title)
 		{
-			glfwSetErrorCallback(error_callback);
-			if (!glfwInit())
-				throw cs::lang_error("Init OpenGL Error.");
-			window = glfwCreateWindow(width, height, title.c_str(), NULL, NULL);
-			glfwMakeContextCurrent(window);
-			glfwSwapInterval(true);
-			ImGui::CreateContext();
-			ImGui_ImplGlfwGL2_Init(window, true);
-			ImGui::GetIO().NavFlags |= ImGuiNavFlags_EnableKeyboard;
+			int count = 0;
+			GLFWmonitor **monitors = glfwGetMonitors(&count);
+			if (monitor_id >= count)
+				throw cs::lang_error("Monitor does not exist.");
+			const GLFWvidmode *vidmode = glfwGetVideoMode(monitors[monitor_id]);
+			window = glfwCreateWindow(vidmode->width, vidmode->height, title.c_str(), monitors[monitor_id], NULL);
+		}
+
+		application(std::size_t width, std::size_t height, const std::string &title) : window(
+			    glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr))
+		{
+			init();
 		}
 
 		~application()
 		{
 			ImGui_ImplGlfwGL2_Shutdown();
 			ImGui::DestroyContext();
-			glfwTerminate();
+			glfwDestroyWindow(window);
+		}
+
+		int get_window_width()
+		{
+			int width = 0;
+			glfwGetWindowSize(window, &width, nullptr);
+			return width;
+		}
+
+		int get_window_height()
+		{
+			int height = 0;
+			glfwGetWindowSize(window, nullptr, &height);
+			return height;
+		}
+
+		void set_window_size(int width, int height)
+		{
+			glfwSetWindowSize(window, width, height);
+		}
+
+		void set_window_title(const std::string &str)
+		{
+			glfwSetWindowTitle(window, str.c_str());
 		}
 
 		void set_bg_color(const ImVec4 &color)
@@ -75,7 +127,7 @@ namespace imgui_cs {
 			bg_color = color;
 		}
 
-		bool window_should_close()
+		bool is_closed()
 		{
 			return glfwWindowShouldClose(window);
 		}
@@ -100,33 +152,74 @@ namespace imgui_cs {
 	};
 }
 
+// GLFW Instance
+static imgui_cs::glfw_instance glfw_instance;
 // CNI Wrapper
 static cs::extension imgui_ext;
 static cs::extension imgui_app_ext;
 static cs::extension_t imgui_app_ext_shared = cs::make_shared_extension(imgui_app_ext);
-using application_t = std::shared_ptr<imgui_cs::application>;
-
-namespace cs_impl {
-	template<>
-	cs::extension_t &get_ext<application_t>()
-	{
-		return imgui_app_ext_shared;
-	}
-
-	template<>
-	constexpr const char *get_name_of_type<application_t>()
-	{
-		return "cs::imgui::application";
-	}
-}
 
 namespace imgui_cs_ext {
 	using namespace cs;
+	using application_t = std::shared_ptr<imgui_cs::application>;
+
+// GLFW Functions
+	number get_monitor_count()
+	{
+		int count = 0;
+		glfwGetMonitors(&count);
+		return count;
+	}
+
+	number get_monitor_width(number monitor_id)
+	{
+		int count = 0;
+		GLFWmonitor **monitors = glfwGetMonitors(&count);
+		if (monitor_id >= count)
+			throw cs::lang_error("Monitor does not exist.");
+		const GLFWvidmode *vidmode = glfwGetVideoMode(monitors[static_cast<std::size_t>(monitor_id)]);
+		return vidmode->width;
+	}
+
+	number get_monitor_height(number monitor_id)
+	{
+		int count = 0;
+		GLFWmonitor **monitors = glfwGetMonitors(&count);
+		if (monitor_id >= count)
+			throw cs::lang_error("Monitor does not exist.");
+		const GLFWvidmode *vidmode = glfwGetVideoMode(monitors[static_cast<std::size_t>(monitor_id)]);
+		return vidmode->height;
+	}
 
 // ImGui Application
-	application_t app(number width, number height, const string &title)
+	application_t fullscreen_application(number monitor_id, const string &title)
+	{
+		return std::make_shared<imgui_cs::application>(monitor_id, title);
+	}
+
+	application_t window_application(number width, number height, const string &title)
 	{
 		return std::make_shared<imgui_cs::application>(width, height, title);
+	}
+
+	number get_window_width(application_t &app)
+	{
+		return app->get_window_width();
+	}
+
+	number get_window_height(application_t &app)
+	{
+		return app->get_window_height();
+	}
+
+	void set_window_size(application_t &app, number width, number height)
+	{
+		app->set_window_size(width, height);
+	}
+
+	void set_window_title(application_t &app, const string &str)
+	{
+		app->set_window_title(str);
 	}
 
 	void set_bg_color(application_t &app, const ImVec4 &color)
@@ -134,9 +227,9 @@ namespace imgui_cs_ext {
 		app->set_bg_color(color);
 	}
 
-	bool window_should_close(application_t &app)
+	bool is_closed(application_t &app)
 	{
-		return app->window_should_close();
+		return app->is_closed();
 	}
 
 	void prepare(application_t &app)
@@ -247,12 +340,20 @@ namespace imgui_cs_ext {
 		// Namespaces
 		imgui_ext.add_var("applicaion", var::make_protect<extension_t>(imgui_app_ext_shared));
 		// Application
+		imgui_app_ext.add_var("get_window_width", var::make_protect<callable>(cni(get_window_width)));
+		imgui_app_ext.add_var("get_window_height", var::make_protect<callable>(cni(get_window_height)));
+		imgui_app_ext.add_var("set_window_size", var::make_protect<callable>(cni(set_window_size)));
+		imgui_app_ext.add_var("set_window_title", var::make_protect<callable>(cni(set_window_title)));
 		imgui_app_ext.add_var("set_bg_color", var::make_protect<callable>(cni(set_bg_color)));
-		imgui_app_ext.add_var("window_should_close", var::make_protect<callable>(cni(window_should_close)));
+		imgui_app_ext.add_var("is_closed", var::make_protect<callable>(cni(is_closed)));
 		imgui_app_ext.add_var("prepare", var::make_protect<callable>(cni(prepare)));
 		imgui_app_ext.add_var("render", var::make_protect<callable>(cni(render)));
 		// Main Function
-		imgui_ext.add_var("app", var::make_protect<callable>(cni(app)));
+		imgui_ext.add_var("get_monitor_count", var::make_protect<callable>(cni(get_monitor_count)));
+		imgui_ext.add_var("get_monitor_width", var::make_protect<callable>(cni(get_monitor_width)));
+		imgui_ext.add_var("get_monitor_height", var::make_protect<callable>(cni(get_monitor_height)));
+		imgui_ext.add_var("fullscreen_application", var::make_protect<callable>(cni(fullscreen_application)));
+		imgui_ext.add_var("window_application", var::make_protect<callable>(cni(window_application)));
 		imgui_ext.add_var("vec2", var::make_protect<callable>(cni(vec2), true));
 		imgui_ext.add_var("vec4", var::make_protect<callable>(cni(vec4), true));
 		imgui_ext.add_var("add_font", var::make_protect<callable>(cni(add_font)));
@@ -271,6 +372,20 @@ namespace imgui_cs_ext {
 		imgui_ext.add_var("check_box", var::make_protect<callable>(cni(check_box)));
 		imgui_ext.add_var("button", var::make_protect<callable>(cni(button)));
 		imgui_ext.add_var("same_line", var::make_protect<callable>(cni(same_line)));
+	}
+}
+
+namespace cs_impl {
+	template<>
+	cs::extension_t &get_ext<imgui_cs_ext::application_t>()
+	{
+		return imgui_app_ext_shared;
+	}
+
+	template<>
+	constexpr const char *get_name_of_type<imgui_cs_ext::application_t>()
+	{
+		return "cs::imgui::application";
 	}
 }
 

@@ -1,5 +1,5 @@
 import imgui
-var app=imgui.app(1280,720,"CovScript ImGUI Example")
+var app=imgui.window_application(0.75*imgui.get_monitor_width(0),0.75*imgui.get_monitor_height(0),"CovScript ImGUI Example")
 imgui.add_font("./res/DroidSans.ttf",16)
 imgui.style_color_dark()
 var show_demo_window = true
@@ -8,7 +8,7 @@ var clear_color = imgui.vec4(0.45, 0.55, 0.60, 1.00)
 var f=0
 var counter=0
 iostream.setprecision(3)
-while !app.window_should_close()
+while !app.is_closed()
     app.prepare()
     imgui.text("Hello, wolrd!")
     imgui.slider_float("float",f,0,1)
