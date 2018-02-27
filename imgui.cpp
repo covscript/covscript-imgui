@@ -207,7 +207,7 @@ namespace imgui_cs_ext {
 
 	void text(const string &str)
 	{
-		ImGui::Text(str.c_str());
+		ImGui::Text("%s", str.c_str());
 	}
 
 	void slider_float(const string &str, number &n, number min, number max)

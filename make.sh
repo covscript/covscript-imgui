@@ -35,9 +35,9 @@ fi
 
 GL_LIBS=""
 case "$(uname -s)" in
-    Linux*)     GL_LIBS="-lopengl";;
+    Linux*)     GL_LIBS="";;
     Darwin*)    GL_LIBS="-framework Cocoa -framework OpenGL";;
-    * )         GL_LIBS="-lopengl" ;;
+    * )         GL_LIBS="" ;;
 esac
 
 DEFAULT_CXXFLAGS="-std=c++11 -I ../include -shared -fPIC -s -O3 $GLFW_CFLAGS"
