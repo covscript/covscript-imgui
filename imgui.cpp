@@ -28,6 +28,7 @@
 
 // ImGUI GLFW3 Implement
 #include <imgui_impl_glfw_gl2.h>
+#include <GLFW/glfw3.h>
 
 // ImGUI Wrapper
 #include <cstdio>
