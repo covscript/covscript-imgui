@@ -83,6 +83,7 @@ namespace imgui_cs {
 				throw cs::lang_error("Monitor does not exist.");
 			const GLFWvidmode *vidmode = glfwGetVideoMode(monitors[monitor_id]);
 			window = glfwCreateWindow(vidmode->width, vidmode->height, title.c_str(), monitors[monitor_id], NULL);
+			init();
 		}
 
 		application(std::size_t width, std::size_t height, const std::string &title) : window(
