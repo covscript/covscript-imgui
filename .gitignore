@@ -42,3 +42,7 @@ build/
 
 # ImGUI Files
 imgui.ini
+
+# IDEA
+.idea/
+cmake-build-debug/
