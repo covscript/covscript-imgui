@@ -151,6 +151,33 @@ namespace imgui_cs {
 			glfwSwapBuffers(window);
 		}
 	};
+
+	template <typename char_t = char>
+	class buffer final {
+		char_t *buff = nullptr;
+
+	public:
+		buffer() = delete;
+
+		buffer(const buffer &) = delete;
+
+		buffer(buffer &b) noexcept
+		{
+			std::swap(this->buff, b.buff);
+		}
+
+		buffer(std::size_t size) : buff(new char_t[size]) {}
+
+		~buffer()
+		{
+			delete[] buff;
+		}
+
+		char_t *get() const
+		{
+			return buff;
+		}
+	};
 }
 
 // GLFW Instance
@@ -159,6 +186,22 @@ static imgui_cs::glfw_instance glfw_instance;
 static cs::extension imgui_ext;
 static cs::extension imgui_app_ext;
 static cs::extension_t imgui_app_ext_shared = cs::make_shared_extension(imgui_app_ext);
+
+class cni_register final {
+public:
+	template <typename _fT>
+	cni_register(const char *name, _fT &&func, bool is_const)
+	{
+		using namespace cs;
+		imgui_ext.add_var(name, var::make_protect<callable>(cni(func), is_const));
+	}
+};
+
+#define CNI_NAME_MIXER(PREFIX, NAME) static cni_register PREFIX##NAME
+#define CNI_REGISTER(NAME, ARGS) CNI_NAME_MIXER(_cni_register_, NAME) \
+(#NAME, NAME, ARGS);
+#define CNI_NORMAL(name) CNI_REGISTER(name, false)
+#define CNI_CONST(name) CNI_REGISTER(name, true)
 
 namespace imgui_cs_ext {
 	using namespace cs;
@@ -171,6 +214,7 @@ namespace imgui_cs_ext {
 		glfwGetMonitors(&count);
 		return count;
 	}
+	CNI_NORMAL(get_monitor_count)
 
 	number get_monitor_width(number monitor_id)
 	{
@@ -181,6 +225,7 @@ namespace imgui_cs_ext {
 		const GLFWvidmode *vidmode = glfwGetVideoMode(monitors[static_cast<std::size_t>(monitor_id)]);
 		return vidmode->width;
 	}
+	CNI_NORMAL(get_monitor_width)
 
 	number get_monitor_height(number monitor_id)
 	{
@@ -191,17 +236,20 @@ namespace imgui_cs_ext {
 		const GLFWvidmode *vidmode = glfwGetVideoMode(monitors[static_cast<std::size_t>(monitor_id)]);
 		return vidmode->height;
 	}
+	CNI_NORMAL(get_monitor_height)
 
 // ImGui Application
 	application_t fullscreen_application(number monitor_id, const string &title)
 	{
 		return std::make_shared<imgui_cs::application>(monitor_id, title);
 	}
+	CNI_NORMAL(fullscreen_application)
 
 	application_t window_application(number width, number height, const string &title)
 	{
 		return std::make_shared<imgui_cs::application>(width, height, title);
 	}
+	CNI_NORMAL(window_application)
 
 	number get_window_width(application_t &app)
 	{
@@ -248,61 +296,159 @@ namespace imgui_cs_ext {
 	{
 		return ImVec2(a, b);
 	}
+	CNI_CONST(vec2)
 
 	ImVec4 vec4(number a, number b, number c, number d)
 	{
 		return ImVec4(a, b, c, d);
 	}
-
-	void add_font(const string &str, number size)
-	{
-		ImGui::GetIO().Fonts->AddFontFromFileTTF(str.c_str(), size);
-	}
-
-	void style_color_classic()
-	{
-		ImGui::StyleColorsClassic();
-	}
-
-	void style_color_light()
-	{
-		ImGui::StyleColorsLight();
-	}
-
-	void style_color_dark()
-	{
-		ImGui::StyleColorsDark();
-	}
+	CNI_CONST(vec4)
 
 	number get_framerate()
 	{
 		return ImGui::GetIO().Framerate;
 	}
+	CNI_NORMAL(get_framerate)
 
+// Styles
+	void add_font(const string &str, number size)
+	{
+		ImGui::GetIO().Fonts->AddFontFromFileTTF(str.c_str(), size);
+	}
+	CNI_NORMAL(add_font)
+
+	void style_color_classic()
+	{
+		ImGui::StyleColorsClassic();
+	}
+	CNI_NORMAL(style_color_classic)
+
+	void style_color_light()
+	{
+		ImGui::StyleColorsLight();
+	}
+	CNI_NORMAL(style_color_light)
+
+	void style_color_dark()
+	{
+		ImGui::StyleColorsDark();
+	}
+	CNI_NORMAL(style_color_dark)
+
+// Windows
 	void set_next_window_pos(const ImVec2 &pos)
 	{
 		ImGui::SetNextWindowPos(pos, ImGuiCond_FirstUseEver);
 	}
+	CNI_NORMAL(set_next_window_pos)
 
 	void show_demo_window(bool &open)
 	{
 		ImGui::ShowDemoWindow(&open);
 	}
+	CNI_NORMAL(show_demo_window)
 
-	void begin(const string &str, bool &open)
+	void begin_window(const string &str, bool &open)
 	{
 		ImGui::Begin(str.c_str(), &open);
 	}
+	CNI_NORMAL(begin_window)
 
-	void term()
+	void end_window()
 	{
 		ImGui::End();
 	}
+	CNI_NORMAL(end_window)
 
+	void begin_child(const string &str)
+	{
+		ImGui::BeginChild(str.c_str());
+	}
+	CNI_NORMAL(begin_child)
+
+	void end_child()
+	{
+		ImGui::EndChild();
+	}
+	CNI_NORMAL(end_child)
+
+// Layouts
+	void begin_group()
+	{
+		ImGui::BeginGroup();
+	}
+	CNI_NORMAL(begin_group)
+
+	void end_group()
+	{
+		ImGui::EndGroup();
+	}
+	CNI_NORMAL(end_group)
+
+	void separator()
+	{
+		ImGui::Separator();
+	}
+	CNI_NORMAL(separator)
+
+	void same_line()
+	{
+		ImGui::SameLine();
+	}
+	CNI_NORMAL(same_line)
+
+	void spacing()
+	{
+		ImGui::Spacing();
+	}
+	CNI_NORMAL(spacing)
+
+	void indent()
+	{
+		ImGui::Indent();
+	}
+	CNI_NORMAL(indent)
+
+// Widgets
 	void text(const string &str)
 	{
-		ImGui::Text("%s", str.c_str());
+		ImGui::TextUnformatted(str.c_str());
 	}
+	CNI_NORMAL(text)
+
+	bool button(const string &str)
+	{
+		return ImGui::Button(str.c_str());
+	}
+	CNI_NORMAL(button)
+
+	void check_box(const string &str, bool &val)
+	{
+		ImGui::Checkbox(str.c_str(), &val);
+	}
+	CNI_NORMAL(check_box)
+
+	void radio_button(const string &str, number &v, number v_button)
+	{
+		int _v = v;
+		ImGui::RadioButton(str.c_str(), &_v, v_button);
+		v = _v;
+	}
+	CNI_NORMAL(radio_button)
+
+	void progress_bar(number fraction, const string &overlay)
+	{
+		ImGui::ProgressBar(fraction, ImVec2(-1, 0), overlay.c_str());
+	}
+	CNI_NORMAL(progress_bar)
+
+	void combo_box(const string &str, number &current, const string &items)
+	{
+		int _current = current;
+		ImGui::Combo(str.c_str(), &_current, items.c_str());
+		current = _current;
+	}
+	CNI_NORMAL(combo_box)
 
 	void slider_float(const string &str, number &n, number min, number max)
 	{
@@ -310,31 +456,35 @@ namespace imgui_cs_ext {
 		ImGui::SliderFloat(str.c_str(), &f, min, max);
 		n = f;
 	}
+	CNI_NORMAL(slider_float)
+
+	string input_text(const string &str, number buff_size)
+	{
+		imgui_cs::buffer<> buff(buff_size);
+		ImGui::InputText(str.c_str(), buff.get(), buff_size);
+		return buff.get();
+	}
+	CNI_NORMAL(input_text)
+
+	string input_text_multiline(const string &str, number buff_size)
+	{
+		imgui_cs::buffer<> buff(buff_size);
+		ImGui::InputTextMultiline(str.c_str(), buff.get(), buff_size);
+		return buff.get();
+	}
+	CNI_NORMAL(input_text_multiline)
 
 	void color_edit3(const string &str, ImVec4 &color)
 	{
 		ImGui::ColorEdit3(str.c_str(), reinterpret_cast<float *>(&color));
 	}
+	CNI_NORMAL(color_edit3)
 
 	void color_edit4(const string &str, ImVec4 &color)
 	{
 		ImGui::ColorEdit4(str.c_str(), reinterpret_cast<float *>(&color));
 	}
-
-	void check_box(const string &str, bool &val)
-	{
-		ImGui::Checkbox(str.c_str(), &val);
-	}
-
-	bool button(const string &str)
-	{
-		return ImGui::Button(str.c_str());
-	}
-
-	void same_line()
-	{
-		ImGui::SameLine();
-	}
+	CNI_NORMAL(color_edit4)
 
 	void init()
 	{
@@ -349,41 +499,17 @@ namespace imgui_cs_ext {
 		imgui_app_ext.add_var("is_closed", var::make_protect<callable>(cni(is_closed)));
 		imgui_app_ext.add_var("prepare", var::make_protect<callable>(cni(prepare)));
 		imgui_app_ext.add_var("render", var::make_protect<callable>(cni(render)));
-		// Main Function
-		imgui_ext.add_var("get_monitor_count", var::make_protect<callable>(cni(get_monitor_count)));
-		imgui_ext.add_var("get_monitor_width", var::make_protect<callable>(cni(get_monitor_width)));
-		imgui_ext.add_var("get_monitor_height", var::make_protect<callable>(cni(get_monitor_height)));
-		imgui_ext.add_var("fullscreen_application", var::make_protect<callable>(cni(fullscreen_application)));
-		imgui_ext.add_var("window_application", var::make_protect<callable>(cni(window_application)));
-		imgui_ext.add_var("vec2", var::make_protect<callable>(cni(vec2), true));
-		imgui_ext.add_var("vec4", var::make_protect<callable>(cni(vec4), true));
-		imgui_ext.add_var("add_font", var::make_protect<callable>(cni(add_font)));
-		imgui_ext.add_var("style_color_classic", var::make_protect<callable>(cni(style_color_classic)));
-		imgui_ext.add_var("style_color_light", var::make_protect<callable>(cni(style_color_light)));
-		imgui_ext.add_var("style_color_dark", var::make_protect<callable>(cni(style_color_dark)));
-		imgui_ext.add_var("get_framerate", var::make_protect<callable>(cni(get_framerate)));
-		imgui_ext.add_var("set_next_window_pos", var::make_protect<callable>(cni(set_next_window_pos)));
-		imgui_ext.add_var("show_demo_window", var::make_protect<callable>(cni(show_demo_window)));
-		imgui_ext.add_var("begin", var::make_protect<callable>(cni(begin)));
-		imgui_ext.add_var("term", var::make_protect<callable>(cni(term)));
-		imgui_ext.add_var("text", var::make_protect<callable>(cni(text)));
-		imgui_ext.add_var("slider_float", var::make_protect<callable>(cni(slider_float)));
-		imgui_ext.add_var("color_edit3", var::make_protect<callable>(cni(color_edit3)));
-		imgui_ext.add_var("color_edit4", var::make_protect<callable>(cni(color_edit4)));
-		imgui_ext.add_var("check_box", var::make_protect<callable>(cni(check_box)));
-		imgui_ext.add_var("button", var::make_protect<callable>(cni(button)));
-		imgui_ext.add_var("same_line", var::make_protect<callable>(cni(same_line)));
 	}
 }
 
 namespace cs_impl {
-	template<>
+	template <>
 	cs::extension_t &get_ext<imgui_cs_ext::application_t>()
 	{
 		return imgui_app_ext_shared;
 	}
 
-	template<>
+	template <>
 	constexpr const char *get_name_of_type<imgui_cs_ext::application_t>()
 	{
 		return "cs::imgui::application";
