@@ -26,9 +26,10 @@
 // ImGUI Common Header
 #include <imgui.h>
 
-// ImGUI GLFW3 Implement
-#include <imgui_impl_glfw_gl2.h>
+// ImGUI GL3W/GLFW3 Implement
+#include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
+#include <imgui_impl_glfw_gl3.h>
 
 // Other Headers
 #include <cstring>
@@ -46,6 +47,12 @@ namespace imgui_cs {
 			glfwSetErrorCallback(error_callback);
 			if (!glfwInit())
 				throw cs::lang_error("Init OpenGL Error.");
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#if __APPLE__
+			glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
 		}
 
 		glfw_instance(const glfw_instance &) = delete;
@@ -66,9 +73,10 @@ namespace imgui_cs {
 		{
 			glfwMakeContextCurrent(window);
 			glfwSwapInterval(1);
+			gl3wInit();
 			ImGui::CreateContext();
-			ImGui_ImplGlfwGL2_Init(window, true);
-			ImGui::GetIO().NavFlags |= ImGuiNavFlags_EnableKeyboard;
+			ImGui_ImplGlfwGL3_Init(window, true);
+			ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 		}
 
 	public:
@@ -97,7 +105,7 @@ namespace imgui_cs {
 
 		~application()
 		{
-			ImGui_ImplGlfwGL2_Shutdown();
+			ImGui_ImplGlfwGL3_Shutdown();
 			ImGui::DestroyContext();
 			glfwDestroyWindow(window);
 		}
@@ -139,7 +147,7 @@ namespace imgui_cs {
 		void prepare()
 		{
 			glfwPollEvents();
-			ImGui_ImplGlfwGL2_NewFrame();
+			ImGui_ImplGlfwGL3_NewFrame();
 		}
 
 		void render()
@@ -150,7 +158,7 @@ namespace imgui_cs {
 			glClearColor(bg_color.x, bg_color.y, bg_color.z, bg_color.w);
 			glClear(GL_COLOR_BUFFER_BIT);
 			ImGui::Render();
-			ImGui_ImplGlfwGL2_RenderDrawData(ImGui::GetDrawData());
+			ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
 			glfwSwapBuffers(window);
 		}
 	};
