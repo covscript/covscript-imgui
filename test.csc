@@ -35,7 +35,7 @@ while !app.is_closed()
             end
         end
         separator()
-        combo_box("Style Choice",combo_choice,"Classic\0Light\0Dark\0")
+        combo_box("Style Choice",combo_choice,{"Classic","Light","Dark"})
         switch combo_choice
             case 0
                 style_color_classic()
