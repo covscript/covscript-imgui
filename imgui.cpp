@@ -930,7 +930,7 @@ namespace imgui_cs_ext {
 	{
 		// Namespaces
 		imgui_ext.add_var("applicaion", var::make_protect<extension_t>(imgui_app_ext_shared));
-		imgui_ext.add_var("image", var::make_protect<extension_t>(imgui_img_ext_shared));
+		imgui_ext.add_var("bmp_image", var::make_protect<extension_t>(imgui_img_ext_shared));
 		imgui_ext.add_var("keys", var::make_protect<extension_t>(imgui_keys_ext_shared));
 		// Application
 		imgui_app_ext.add_var("get_window_width",
