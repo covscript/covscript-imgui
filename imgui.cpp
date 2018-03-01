@@ -193,15 +193,18 @@ namespace imgui_cs {
 	};
 
 	class image final {
-		int ImageWidth; 
-		int ImageHeight; 
-		int PixelLength;  
-		void* PixelData;
+		int ImageWidth;
+		int ImageHeight;
+		int PixelLength;
+		void *PixelData;
 	public:
-		image()=delete;
-		image(const image&)=delete;
-		image(image&&) noexcept=delete;
-		explicit image(const string &path)
+		image() = delete;
+
+		image(const image &) = delete;
+
+		image(image &&) noexcept = delete;
+
+		explicit image(const std::string &path)
 		{
 			FILE *pFile = fopen(path.c_str(), "rb");
 			if (pFile == nullptr)
@@ -220,23 +223,28 @@ namespace imgui_cs {
 			fread(PixelData, PixelLength, 1, pFile);
 			fclose(pFile);
 		}
+
 		~image()
 		{
 			free(PixelData);
 		}
+
 		int get_width() const
 		{
 			return ImageWidth;
 		}
+
 		int get_height() const
 		{
 			return ImageHeight;
 		}
+
 		int get_texture_length() const
 		{
 			return PixelLength;
 		}
-		void* get_texture_id() const
+
+		void *get_texture_id() const
 		{
 			return PixelData;
 		}
@@ -326,7 +334,7 @@ namespace imgui_cs_ext {
 
 	CNI_NORMAL(window_application)
 
-	namespace applicaion {
+	namespace applicaion_cs_ext {
 		number get_window_width(application_t &app)
 		{
 			return app->get_window_width();
@@ -369,20 +377,20 @@ namespace imgui_cs_ext {
 	}
 
 // ImGui Image
-	image_t load_bmp_image(const string& path)
+	image_t load_bmp_image(const string &path)
 	{
 		return std::make_shared<imgui_cs::image>(path);
 	}
 
 	CNI_NORMAL(load_bmp_image)
 
-	namespace image {
-		number get_width(const image_t& image)
+	namespace image_cs_ext {
+		number get_width(const image_t &image)
 		{
 			return image->get_width();
 		}
 
-		number get_height(const image_t& image)
+		number get_height(const image_t &image)
 		{
 			return image->get_height();
 		}
@@ -568,16 +576,16 @@ namespace imgui_cs_ext {
 
 	CNI_NORMAL(button)
 
-	void image(const image_t& img,const ImVec2& size)
+	void image(const image_t &img, const ImVec2 &size)
 	{
-		ImGui::Image(img->get_texture_id(),size);
+		ImGui::Image(img->get_texture_id(), size);
 	}
 
 	CNI_NORMAL(image)
 
-	bool image_button(const image_t& img,const ImVec2& size)
+	bool image_button(const image_t &img, const ImVec2 &size)
 	{
-		return ImGui::ImageButton(img->get_texture_id(),size);
+		return ImGui::ImageButton(img->get_texture_id(), size);
 	}
 
 	CNI_NORMAL(image_button)
@@ -607,9 +615,9 @@ namespace imgui_cs_ext {
 
 	void combo_box(const string &str, number &current, const array &items)
 	{
-		const char *_items[] = new const char*[items.size()];
-		for (std::size_t i=0;i<items.size();++i)
-			_items[i]=items[i].const_val<string>().c_str();
+		const char **_items = new const char *[items.size()];
+		for (std::size_t i = 0; i < items.size(); ++i)
+			_items[i] = items[i].const_val<string>().c_str();
 		int _current = current;
 		ImGui::Combo(str.c_str(), &_current, _items, items.size());
 		current = _current;
@@ -686,10 +694,10 @@ namespace imgui_cs_ext {
 
 	void list_box(const string &str, number &current, const array &items)
 	{
-		const char *_items[] = new const char*[items.size()];
-		for (std::size_t i=0;i<items.size();++i)
-			_items[i]=items[i].const_val<string>().c_str();
-		int _current=current;
+		const char **_items = new const char *[items.size()];
+		for (std::size_t i = 0; i < items.size(); ++i)
+			_items[i] = items[i].const_val<string>().c_str();
+		int _current = current;
 		ImGui::ListBox(str.c_str(), &_current, _items, items.size());
 		delete[] _items;
 	}
@@ -725,9 +733,9 @@ namespace imgui_cs_ext {
 
 	CNI_NORMAL(end_menu_bar)
 
-	void begin_menu(const string &str, bool& opened)
+	void begin_menu(const string &str, bool &opened)
 	{
-		opened=ImGui::BeginMenu(str.c_str(),opened);
+		opened = ImGui::BeginMenu(str.c_str(), opened);
 	}
 
 	CNI_NORMAL(begin_menu)
@@ -741,7 +749,7 @@ namespace imgui_cs_ext {
 
 	bool menu_item(const string &str, const string &shortcut, bool enabled)
 	{
-		return ImGui::MenuItem(str.c_str(),shortcut.c_str(),false,enabled);
+		return ImGui::MenuItem(str.c_str(), shortcut.c_str(), false, enabled);
 	}
 
 	CNI_NORMAL(menu_item)
@@ -770,28 +778,28 @@ namespace imgui_cs_ext {
 
 	bool is_key_released(number key)
 	{
-		return IsKeyReleased(key);
+		return ImGui::IsKeyReleased(key);
 	}
 
 	CNI_NORMAL(is_key_released)
 
 	bool is_mouse_clicked(number button)
 	{
-		return IsMouseClicked(button);
+		return ImGui::IsMouseClicked(button);
 	}
 
 	CNI_NORMAL(is_mouse_clicked)
 
 	bool is_mouse_double_clicked(number button)
 	{
-		return IsMouseDoubleClicked(button);
+		return ImGui::IsMouseDoubleClicked(button);
 	}
 
 	CNI_NORMAL(is_mouse_double_clicked)
 
 	bool is_mouse_dragging(number button)
 	{
-		return IsMouseDragging(button);
+		return ImGui::IsMouseDragging(button);
 	}
 
 	CNI_NORMAL(is_mouse_dragging)
@@ -839,60 +847,84 @@ namespace imgui_cs_ext {
 	CNI_NORMAL(set_clipboard_text)
 
 // Canvas
-	void add_line(const ImVec2& a,const ImVec2& b,number col,number thickness)
+	void add_line(const ImVec2 &a, const ImVec2 &b, const ImVec4 &color, number thickness)
 	{
-		ImGui::GetWindowDrawList()->AddLine(a,b,col,thickness);
+		ImGui::GetWindowDrawList()->AddLine(a, b, ImGui::GetColorU32(color), thickness);
 	}
 
-	void add_rect(const ImVec2& a,const ImVec2& b,number col,number rounding,number thickness)
+	CNI_NORMAL(add_line)
+
+	void add_rect(const ImVec2 &a, const ImVec2 &b, const ImVec4 &color, number rounding, number thickness)
 	{
-		ImGui::GetWindowDrawList()->AddRect(a,b,col,rounding,ImDrawCornerFlags_All,thickness);
+		ImGui::GetWindowDrawList()->AddRect(a, b, ImGui::GetColorU32(color), rounding, ImDrawCornerFlags_All,
+		                                    thickness);
 	}
 
-	void add_rect_filled(const ImVec2& a,const ImVec2& b,number col,number rounding)
+	CNI_NORMAL(add_rect)
+
+	void add_rect_filled(const ImVec2 &a, const ImVec2 &b, const ImVec4 &color, number rounding)
 	{
-		ImGui::GetWindowDrawList()->AddRectFilled(a,b,col,rounding,ImDrawCornerFlags_All);
+		ImGui::GetWindowDrawList()->AddRectFilled(a, b, ImGui::GetColorU32(color), rounding, ImDrawCornerFlags_All);
 	}
 
-	void add_quad(const ImVec2& a,const ImVec2& b,const ImVec2& c, const ImVec2& d,number col,number thickness)
+	CNI_NORMAL(add_rect_filled)
+
+	void add_quad(const ImVec2 &a, const ImVec2 &b, const ImVec2 &c, const ImVec2 &d, const ImVec4 &color,
+	              number thickness)
 	{
-		ImGui::GetWindowDrawList()->AddQuad(a,b,c,d,col,thickness);
+		ImGui::GetWindowDrawList()->AddQuad(a, b, c, d, ImGui::GetColorU32(color), thickness);
 	}
 
-	void add_quad_filled(const ImVec2& a,const ImVec2& b,const ImVec2& c, const ImVec2& d,number col)
+	CNI_NORMAL(add_quad)
+
+	void add_quad_filled(const ImVec2 &a, const ImVec2 &b, const ImVec2 &c, const ImVec2 &d, const ImVec4 &color)
 	{
-		ImGui::GetWindowDrawList()->AddQuadFilled(a,b,c,d,col);
+		ImGui::GetWindowDrawList()->AddQuadFilled(a, b, c, d, ImGui::GetColorU32(color));
 	}
 
-	void add_triangle(const ImVec2& a,const ImVec2& b,const ImVec2& c,number col,number thickness)
+	CNI_NORMAL(add_quad_filled)
+
+	void add_triangle(const ImVec2 &a, const ImVec2 &b, const ImVec2 &c, const ImVec4 &color, number thickness)
 	{
-		ImGui::GetWindowDrawList()->AddTriangle(a,b,c,col,thickness);
+		ImGui::GetWindowDrawList()->AddTriangle(a, b, c, ImGui::GetColorU32(color), thickness);
 	}
 
-	void add_triangle_filled(const ImVec2& a,const ImVec2& b,const ImVec2& c,number col)
+	CNI_NORMAL(add_triangle)
+
+	void add_triangle_filled(const ImVec2 &a, const ImVec2 &b, const ImVec2 &c, const ImVec4 &color)
 	{
-		ImGui::GetWindowDrawList()->AddTriangleFilled(a,b,c,col);
+		ImGui::GetWindowDrawList()->AddTriangleFilled(a, b, c, ImGui::GetColorU32(color));
 	}
 
-	void add_circle(const ImVec2& centre, number radius,number col,number seg,number thickness)
+	CNI_NORMAL(add_triangle_filled)
+
+	void add_circle(const ImVec2 &centre, number radius, const ImVec4 &color, number seg, number thickness)
 	{
-		ImGui::GetWindowDrawList()->AddCircle(centre,radius,col,seg,thickness);
+		ImGui::GetWindowDrawList()->AddCircle(centre, radius, ImGui::GetColorU32(color), seg, thickness);
 	}
 
-	void add_circle_filled(const ImVec2& centre, number radius,number col,number seg)
+	CNI_NORMAL(add_circle)
+
+	void add_circle_filled(const ImVec2 &centre, number radius, const ImVec4 &color, number seg)
 	{
-		ImGui::GetWindowDrawList()->AddCircleFilled(centre,radius,col,seg);
+		ImGui::GetWindowDrawList()->AddCircleFilled(centre, radius, ImGui::GetColorU32(color), seg);
 	}
 
-	void add_text(const ImVec2& pos,number col,const string& text)
+	CNI_NORMAL(add_circle_filled)
+
+	void add_text(const ImVec2 &pos, const ImVec4 &color, const string &text)
 	{
-		ImGui::GetWindowDrawList()->AddText(pos,col,text.c_str());
+		ImGui::GetWindowDrawList()->AddText(pos, ImGui::GetColorU32(color), text.c_str());
 	}
 
-	void add_image(const image_t& image,const ImVec2& a,const ImVec2& b)
+	CNI_NORMAL(add_text)
+
+	void add_image(const image_t &image, const ImVec2 &a, const ImVec2 &b)
 	{
-		ImGui::GetWindowDrawList()->AddImage(image->get_texture_id(),a,b);
+		ImGui::GetWindowDrawList()->AddImage(image->get_texture_id(), a, b);
 	}
+
+	CNI_NORMAL(add_image)
 
 	void init()
 	{
@@ -901,17 +933,20 @@ namespace imgui_cs_ext {
 		imgui_ext.add_var("image", var::make_protect<extension_t>(imgui_img_ext_shared));
 		imgui_ext.add_var("keys", var::make_protect<extension_t>(imgui_keys_ext_shared));
 		// Application
-		imgui_app_ext.add_var("get_window_width", var::make_protect<callable>(cni(applicaion::get_window_width)));
-		imgui_app_ext.add_var("get_window_height", var::make_protect<callable>(cni(applicaion::get_window_height)));
-		imgui_app_ext.add_var("set_window_size", var::make_protect<callable>(cni(applicaion::set_window_size)));
-		imgui_app_ext.add_var("set_window_title", var::make_protect<callable>(cni(applicaion::set_window_title)));
-		imgui_app_ext.add_var("set_bg_color", var::make_protect<callable>(cni(applicaion::set_bg_color)));
-		imgui_app_ext.add_var("is_closed", var::make_protect<callable>(cni(applicaion::is_closed)));
-		imgui_app_ext.add_var("prepare", var::make_protect<callable>(cni(applicaion::prepare)));
-		imgui_app_ext.add_var("render", var::make_protect<callable>(cni(applicaion::render)));
+		imgui_app_ext.add_var("get_window_width",
+		                      var::make_protect<callable>(cni(applicaion_cs_ext::get_window_width)));
+		imgui_app_ext.add_var("get_window_height",
+		                      var::make_protect<callable>(cni(applicaion_cs_ext::get_window_height)));
+		imgui_app_ext.add_var("set_window_size", var::make_protect<callable>(cni(applicaion_cs_ext::set_window_size)));
+		imgui_app_ext.add_var("set_window_title",
+		                      var::make_protect<callable>(cni(applicaion_cs_ext::set_window_title)));
+		imgui_app_ext.add_var("set_bg_color", var::make_protect<callable>(cni(applicaion_cs_ext::set_bg_color)));
+		imgui_app_ext.add_var("is_closed", var::make_protect<callable>(cni(applicaion_cs_ext::is_closed)));
+		imgui_app_ext.add_var("prepare", var::make_protect<callable>(cni(applicaion_cs_ext::prepare)));
+		imgui_app_ext.add_var("render", var::make_protect<callable>(cni(applicaion_cs_ext::render)));
 		// Image
-		imgui_img_ext.add_var("get_width", var::make_protect<callable>(cni(image::get_width)));
-		imgui_img_ext.add_var("get_height", var::make_protect<callable>(cni(image::get_height)));
+		imgui_img_ext.add_var("get_width", var::make_protect<callable>(cni(image_cs_ext::get_width)));
+		imgui_img_ext.add_var("get_height", var::make_protect<callable>(cni(image_cs_ext::get_height)));
 		// Keys
 		imgui_keys_ext.add_var("tab", var::make_constant<ImGuiKey>(ImGuiKey_Tab));
 		imgui_keys_ext.add_var("left", var::make_constant<ImGuiKey>(ImGuiKey_LeftArrow));
