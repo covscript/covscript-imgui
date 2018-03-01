@@ -40,11 +40,16 @@ case "$(uname -s)" in
     * )         GL_LIBS="-lGL" ;;
 esac
 
-DEFAULT_CXXFLAGS="-std=c++11 -I ../include -shared -fPIC -s -O3 $GLFW_CFLAGS"
+COMMON_FLAGS="-I ../include -fPIC -O3"
+DEFAULT_CXXFLAGS="-std=c++11 -shared -s $COMMON_FLAGS $GLFW_CFLAGS"
+DEFAULT_CFLAGS="$COMMON_FLAGS"
 DEFAULT_LDFLAGS="-ldl $GLFW_LDFLAGS $GL_LIBS"
 DEFAULT_CXX=g++
+DEFAULT_CC=gcc
 
+set_flag CC $DEFAULT_CC
 set_flag CXX $DEFAULT_CXX
+set_flag --append CFLAGS $DEFAULT_CFLAGS
 set_flag --append CXXFLAGS $DEFAULT_CXXFLAGS
 set_flag --append LDFLAGS $DEFAULT_LDFLAGS
 
@@ -60,5 +65,6 @@ done
 mkdir -p build
 cd build
 mkdir -p imports
-$CXX $CXXFLAGS ../*.cpp ../src/*.cpp $LDFLAGS -o ./imports/imgui.cse
-
+$CC $CFLAGS -c ../src/*.c -o ./imgui.o
+$CXX $CXXFLAGS ../*.cpp ../src/*.cpp ./imgui.o $LDFLAGS -o ./imports/imgui.cse
+rm ./imgui.o
