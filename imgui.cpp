@@ -798,7 +798,7 @@ namespace imgui_cs_ext {
 		return ImGui::GetKeyIndex(key);
 	}
 
-	CNI_CONST(get_key_index)
+	CNI_NORMAL(get_key_index)
 
 	bool is_key_down(number key)
 	{
