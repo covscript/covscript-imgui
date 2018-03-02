@@ -743,9 +743,9 @@ namespace imgui_cs_ext {
 	CNI_NORMAL(list_box)
 
 // Menus
-	void begin_main_menu_bar()
+	bool begin_main_menu_bar()
 	{
-		ImGui::BeginMainMenuBar();
+		return ImGui::BeginMainMenuBar();
 	}
 
 	CNI_NORMAL(begin_main_menu_bar)
@@ -757,9 +757,9 @@ namespace imgui_cs_ext {
 
 	CNI_NORMAL(end_main_menu_bar)
 
-	void begin_menu_bar()
+	bool begin_menu_bar()
 	{
-		ImGui::BeginMenuBar();
+		return ImGui::BeginMenuBar();
 	}
 
 	CNI_NORMAL(begin_menu_bar)
@@ -771,9 +771,9 @@ namespace imgui_cs_ext {
 
 	CNI_NORMAL(end_menu_bar)
 
-	void begin_menu(const string &str, bool &opened)
+	bool begin_menu(const string &str, bool enabled)
 	{
-		opened = ImGui::BeginMenu(str.c_str(), opened);
+		return ImGui::BeginMenu(str.c_str(), enabled);
 	}
 
 	CNI_NORMAL(begin_menu)
@@ -798,7 +798,7 @@ namespace imgui_cs_ext {
 		return ImGui::GetKeyIndex(key);
 	}
 
-	CNI_NORMAL(get_key_index)
+	CNI_CONST(get_key_index)
 
 	bool is_key_down(number key)
 	{
