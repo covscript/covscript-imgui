@@ -15,6 +15,7 @@ while !app.is_closed()
         if !window_opened
             break
         end
+        set_window_size(vec2(0,0))
         slider_float("Progress",progress,0,1)
         progress_bar(progress,"Progress")
         separator()
@@ -51,9 +52,10 @@ while !app.is_closed()
         input_text_multiline("",texts,512)
         var pos={get_window_pos_x(),get_window_pos_y()}
         var size={get_window_width(),get_window_height()}
-        set_next_window_pos(vec2(pos[0]+size[0]+10,pos[1]+size[1]+10))
     end_window()
     begin_window("Text",window_opened)
+        set_window_pos(vec2(pos[0]+size[0]+10,pos[1]+size[1]+10))
+        set_window_size(vec2(0,0))
         text("Texts from main window:")
         separator()
         text(texts)

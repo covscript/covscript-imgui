@@ -472,6 +472,13 @@ namespace imgui_cs_ext {
 
 	CNI_NORMAL(set_next_window_pos)
 
+	void set_window_pos(const ImVec2 &pos)
+	{
+		ImGui::SetWindowPos(pos);
+	}
+
+	CNI_NORMAL(set_window_pos)
+
 	number get_window_pos_x()
 	{
 		return ImGui::GetWindowPos().x;
@@ -485,6 +492,20 @@ namespace imgui_cs_ext {
 	}
 
 	CNI_NORMAL(get_window_pos_y)
+
+	void set_next_window_size(const ImVec2 &size)
+	{
+		ImGui::SetNextWindowSize(size);
+	}
+
+	CNI_NORMAL(set_next_window_size)
+
+	void set_window_size(const ImVec2 &size)
+	{
+		ImGui::SetWindowSize(size);
+	}
+
+	CNI_NORMAL(set_window_size)
 
 	number get_window_width()
 	{
@@ -509,7 +530,7 @@ namespace imgui_cs_ext {
 
 	void begin_window(const string &str, bool &open)
 	{
-		ImGui::Begin(str.c_str(), &open, ImGuiWindowFlags_AlwaysAutoResize);
+		ImGui::Begin(str.c_str(), &open);
 	}
 
 	CNI_NORMAL(begin_window)

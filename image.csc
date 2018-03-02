@@ -15,11 +15,12 @@ while !app.is_closed()
     else
         progress+=(100-progress)/100
     end
-    set_next_window_pos(vec2(0,0))
     begin_window("Welcome using CovScript",window_opened)
         if !window_opened
             break
         end
+        set_window_pos(vec2(0,0))
+        set_window_size(vec2(0,0))
         image(img,vec2(img.get_width()/2,img.get_height()/2))
         progress_bar(progress/100,"Loading..."+to_integer(progress)+"%")
     end_window()
