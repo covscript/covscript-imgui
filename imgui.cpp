@@ -887,14 +887,14 @@ namespace imgui_cs_ext {
 // Canvas
 	void add_line(const ImVec2 &a, const ImVec2 &b, const ImVec4 &color, number thickness)
 	{
-		ImGui::GetWindowDrawList()->AddLine(a, b, ImGui::GetColorU32(color), thickness);
+		ImGui::GetWindowDrawList()->AddLine(a, b, ImColor(color), thickness);
 	}
 
 	CNI_NORMAL(add_line)
 
 	void add_rect(const ImVec2 &a, const ImVec2 &b, const ImVec4 &color, number rounding, number thickness)
 	{
-		ImGui::GetWindowDrawList()->AddRect(a, b, ImGui::GetColorU32(color), rounding, ImDrawCornerFlags_All,
+		ImGui::GetWindowDrawList()->AddRect(a, b, ImColor(color), rounding, ImDrawCornerFlags_All,
 		                                    thickness);
 	}
 
@@ -902,7 +902,7 @@ namespace imgui_cs_ext {
 
 	void add_rect_filled(const ImVec2 &a, const ImVec2 &b, const ImVec4 &color, number rounding)
 	{
-		ImGui::GetWindowDrawList()->AddRectFilled(a, b, ImGui::GetColorU32(color), rounding, ImDrawCornerFlags_All);
+		ImGui::GetWindowDrawList()->AddRectFilled(a, b, ImColor(color), rounding, ImDrawCornerFlags_All);
 	}
 
 	CNI_NORMAL(add_rect_filled)
@@ -910,49 +910,49 @@ namespace imgui_cs_ext {
 	void add_quad(const ImVec2 &a, const ImVec2 &b, const ImVec2 &c, const ImVec2 &d, const ImVec4 &color,
 	              number thickness)
 	{
-		ImGui::GetWindowDrawList()->AddQuad(a, b, c, d, ImGui::GetColorU32(color), thickness);
+		ImGui::GetWindowDrawList()->AddQuad(a, b, c, d, ImColor(color), thickness);
 	}
 
 	CNI_NORMAL(add_quad)
 
 	void add_quad_filled(const ImVec2 &a, const ImVec2 &b, const ImVec2 &c, const ImVec2 &d, const ImVec4 &color)
 	{
-		ImGui::GetWindowDrawList()->AddQuadFilled(a, b, c, d, ImGui::GetColorU32(color));
+		ImGui::GetWindowDrawList()->AddQuadFilled(a, b, c, d, ImColor(color));
 	}
 
 	CNI_NORMAL(add_quad_filled)
 
 	void add_triangle(const ImVec2 &a, const ImVec2 &b, const ImVec2 &c, const ImVec4 &color, number thickness)
 	{
-		ImGui::GetWindowDrawList()->AddTriangle(a, b, c, ImGui::GetColorU32(color), thickness);
+		ImGui::GetWindowDrawList()->AddTriangle(a, b, c, ImColor(color), thickness);
 	}
 
 	CNI_NORMAL(add_triangle)
 
 	void add_triangle_filled(const ImVec2 &a, const ImVec2 &b, const ImVec2 &c, const ImVec4 &color)
 	{
-		ImGui::GetWindowDrawList()->AddTriangleFilled(a, b, c, ImGui::GetColorU32(color));
+		ImGui::GetWindowDrawList()->AddTriangleFilled(a, b, c, ImColor(color));
 	}
 
 	CNI_NORMAL(add_triangle_filled)
 
 	void add_circle(const ImVec2 &centre, number radius, const ImVec4 &color, number seg, number thickness)
 	{
-		ImGui::GetWindowDrawList()->AddCircle(centre, radius, ImGui::GetColorU32(color), seg, thickness);
+		ImGui::GetWindowDrawList()->AddCircle(centre, radius, ImColor(color), seg, thickness);
 	}
 
 	CNI_NORMAL(add_circle)
 
 	void add_circle_filled(const ImVec2 &centre, number radius, const ImVec4 &color, number seg)
 	{
-		ImGui::GetWindowDrawList()->AddCircleFilled(centre, radius, ImGui::GetColorU32(color), seg);
+		ImGui::GetWindowDrawList()->AddCircleFilled(centre, radius, ImColor(color), seg);
 	}
 
 	CNI_NORMAL(add_circle_filled)
 
 	void add_text(const ImVec2 &pos, const ImVec4 &color, const string &text)
 	{
-		ImGui::GetWindowDrawList()->AddText(pos, ImGui::GetColorU32(color), text.c_str());
+		ImGui::GetWindowDrawList()->AddText(pos, ImColor(color), text.c_str());
 	}
 
 	CNI_NORMAL(add_text)
