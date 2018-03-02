@@ -33,7 +33,6 @@
 
 // Other Headers
 #include <cstring>
-#include <cstdlib>
 #include <cstdio>
 
 namespace imgui_cs {
@@ -193,10 +192,10 @@ namespace imgui_cs {
 	};
 
 	class image final {
-		int ImageWidth;
-		int ImageHeight;
-		int PixelLength;
-		void *PixelData;
+		int width;
+		int height;
+		GLuint textureID;
+		unsigned char *data;
 	public:
 		image() = delete;
 
@@ -206,47 +205,65 @@ namespace imgui_cs {
 
 		explicit image(const std::string &path)
 		{
-			FILE *pFile = fopen(path.c_str(), "rb");
-			if (pFile == nullptr)
-				throw cs::lang_error("File not exist.");
-			fseek(pFile, 0x0012, SEEK_SET);
-			fread(&ImageWidth, sizeof(ImageWidth), 1, pFile);
-			fread(&ImageHeight, sizeof(ImageHeight), 1, pFile);
-			PixelLength = ImageWidth * 3;
-			while (PixelLength % 4 != 0)
-				++PixelLength;
-			PixelLength *= ImageHeight;
-			PixelData = malloc(PixelLength);
-			if (PixelData == nullptr)
-				throw cs::lang_error("Can not read image file.");
-			fseek(pFile, 54, SEEK_SET);
-			fread(PixelData, PixelLength, 1, pFile);
-			fclose(pFile);
+			unsigned char header[54];
+			unsigned int image_size;
+			FILE *file = fopen(path.c_str(), "rb");
+			if (!file)
+				throw cs::lang_error("Image could not be opened");
+			if (fread(header, 1, 54, file) != 54) {
+				fclose(file);
+				throw cs::lang_error("Not a correct BMP file");
+			}
+			if (header[0] != 'B' || header[1] != 'M') {
+				fclose(file);
+				throw cs::lang_error("Not a correct BMP file");
+			}
+			if (*(int *) &(header[0x1C]) != 24) {
+				fclose(file);
+				throw cs::lang_error("Not a 24-bit BMP file");
+			}
+			width = *(int *) &(header[0x12]);
+			height = *(int *) &(header[0x16]);
+			image_size = *(int *) &(header[0x22]);
+			if (image_size == 0)
+				image_size = width * height * 3;
+			data = new unsigned char[image_size];
+			fread(data, 1, image_size, file);
+			fclose(file);
+			unsigned char *reversed_data = new unsigned char[image_size];
+			int row_size = width * 3;
+			if (row_size % 4 != 0)
+				row_size += 4 - row_size % 4;
+			for (int y = 0; y < height; ++y)
+				for (int x = 0; x < row_size; ++x)
+					reversed_data[y * row_size + x] = data[(height - y - 1) * row_size + x];
+			std::swap(data, reversed_data);
+			delete[] reversed_data;
+			glGenTextures(1, &textureID);
+			glBindTexture(GL_TEXTURE_2D, textureID);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGR, GL_UNSIGNED_BYTE, data);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		}
 
 		~image()
 		{
-			free(PixelData);
+			delete[] data;
 		}
 
 		int get_width() const
 		{
-			return ImageWidth;
+			return width;
 		}
 
 		int get_height() const
 		{
-			return ImageHeight;
+			return height;
 		}
 
-		int get_texture_length() const
+		ImTextureID get_texture_id() const
 		{
-			return PixelLength;
-		}
-
-		void *get_texture_id() const
-		{
-			return PixelData;
+			return reinterpret_cast<ImTextureID>(textureID);
 		}
 	};
 }
