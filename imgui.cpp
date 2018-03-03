@@ -729,7 +729,7 @@ namespace imgui_cs_ext {
 // Trees
 	bool tree_node(const string &label)
 	{
-		ImGui::TreeNode(label.c_str());
+		return ImGui::TreeNode(label.c_str());
 	}
 
 	CNI_NORMAL(tree_node)
