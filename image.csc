@@ -48,24 +48,24 @@ while !app.is_closed()
         end
         end_main_menu_bar()
     end
-    begin_window("Welcome using CovScript",window_opened)
+    begin_window("Main",window_opened,{flags.always_auto_resize,flags.no_collapse,flags.no_move,flags.no_title_bar})
         if !window_opened
             break
         end
-        set_window_pos(vec2(0,50))
-        set_window_size(vec2(0,0))
+        set_window_pos(vec2(0,20))
         image(img,vec2(img.get_width()/2,img.get_height()/2))
         progress_bar(progress/100,"Loading..."+to_integer(progress)+"%")
     end_window()
     if show_about
         var about_opened=true
-        begin_window("About",about_opened)
+        begin_window("About",about_opened,{flags.always_auto_resize,flags.no_collapse})
             if !about_opened
                 show_about=false
             end
-            set_window_size(vec2(0,0))
             text("Covariant Script Programming Language")
+            bullet()
             text("STD Version:"+runtime.std_version)
+            bullet()
             text("Import Path:"+runtime.get_import_path())
             text("Dear ImGui Extension")
             if button("Ok")
@@ -75,8 +75,7 @@ while !app.is_closed()
     end
     if show_confirm
         var confirm_window=true
-        begin_window("Confirm",confirm_window)
-            set_window_size(vec2(0,0))
+        begin_window("Confirm",confirm_window,{flags.always_auto_resize,flags.no_collapse})
             text("Do you want to exit?")
             spacing()
             if button("Yes") || is_key_pressed(to_integer('Y'))

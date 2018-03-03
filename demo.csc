@@ -22,7 +22,7 @@ while !app.is_closed()
     imgui.text("counter = "+counter)
     imgui.text("Application average "+1000/imgui.get_framerate()+" ms/frame ("+imgui.get_framerate()+" FPS)")
     if show_another_window
-        imgui.begin_window("Another Window",show_another_window)
+        imgui.begin_window("Another Window",show_another_window,{})
         imgui.text("Hello from another window!")
         if imgui.button("Close Me")
             show_another_window=false

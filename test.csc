@@ -11,11 +11,10 @@ var combo_choice=1
 var texts=new string
 while !app.is_closed()
     app.prepare()
-    begin_window("Test",window_opened)
+    begin_window("Test",window_opened,{flags.always_auto_resize})
         if !window_opened
             break
         end
-        set_window_size(vec2(0,0))
         slider_float("Progress",progress,0,1)
         progress_bar(progress,"Progress")
         separator()
@@ -53,7 +52,7 @@ while !app.is_closed()
         var pos={get_window_pos_x(),get_window_pos_y()}
         var size={get_window_width(),get_window_height()}
     end_window()
-    begin_window("Text",window_opened)
+    begin_window("Text",window_opened,{flags.always_auto_resize,flags.no_title_bar,flags.no_move})
         set_window_pos(vec2(pos[0]+size[0]+10,pos[1]+size[1]+10))
         set_window_size(vec2(0,0))
         text("Texts from main window:")

@@ -275,9 +275,11 @@ static cs::extension imgui_ext;
 static cs::extension imgui_app_ext;
 static cs::extension imgui_img_ext;
 static cs::extension imgui_keys_ext;
+static cs::extension imgui_flags_ext;
 static cs::extension_t imgui_app_ext_shared = cs::make_shared_extension(imgui_app_ext);
 static cs::extension_t imgui_img_ext_shared = cs::make_shared_extension(imgui_img_ext);
 static cs::extension_t imgui_keys_ext_shared = cs::make_shared_extension(imgui_keys_ext);
+static cs::extension_t imgui_flags_ext_shared = cs::make_shared_extension(imgui_flags_ext);
 
 class cni_register final {
 public:
@@ -528,9 +530,12 @@ namespace imgui_cs_ext {
 
 	CNI_NORMAL(show_demo_window)
 
-	void begin_window(const string &str, bool &open)
+	void begin_window(const string &str, bool &open, const array &flags_arr)
 	{
-		ImGui::Begin(str.c_str(), &open);
+		ImGuiWindowFlags flags = 0;
+		for (auto &it:flags_arr)
+			flags |= it.const_val<ImGuiWindowFlags>();
+		ImGui::Begin(str.c_str(), &open, flags);
 	}
 
 	CNI_NORMAL(begin_window)
@@ -599,6 +604,13 @@ namespace imgui_cs_ext {
 
 	CNI_NORMAL(indent)
 
+	void unindent()
+	{
+		ImGui::Unindent();
+	}
+
+	CNI_NORMAL(unindent)
+
 // Widgets
 	void text(const string &str)
 	{
@@ -606,6 +618,13 @@ namespace imgui_cs_ext {
 	}
 
 	CNI_NORMAL(text)
+
+	void bullet()
+	{
+		ImGui::Bullet();
+	}
+
+	CNI_NORMAL(bullet)
 
 	bool button(const string &str)
 	{
@@ -970,6 +989,7 @@ namespace imgui_cs_ext {
 		imgui_ext.add_var("applicaion", var::make_protect<extension_t>(imgui_app_ext_shared));
 		imgui_ext.add_var("bmp_image", var::make_protect<extension_t>(imgui_img_ext_shared));
 		imgui_ext.add_var("keys", var::make_protect<extension_t>(imgui_keys_ext_shared));
+		imgui_ext.add_var("flags", var::make_protect<extension_t>(imgui_flags_ext_shared));
 		// Application
 		imgui_app_ext.add_var("get_window_width",
 		                      var::make_protect<callable>(cni(applicaion_cs_ext::get_window_width)));
@@ -1007,6 +1027,18 @@ namespace imgui_cs_ext {
 		imgui_keys_ext.add_var("ctrl_x", var::make_constant<ImGuiKey>(ImGuiKey_X));
 		imgui_keys_ext.add_var("ctrl_y", var::make_constant<ImGuiKey>(ImGuiKey_Y));
 		imgui_keys_ext.add_var("ctrl_z", var::make_constant<ImGuiKey>(ImGuiKey_Z));
+		imgui_flags_ext.add_var("no_title_bar", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_NoTitleBar));
+		imgui_flags_ext.add_var("no_resize", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_NoResize));
+		imgui_flags_ext.add_var("no_move", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_NoMove));
+		imgui_flags_ext.add_var("no_scroll_bar", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_NoScrollbar));
+		imgui_flags_ext.add_var("no_collapse", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_NoCollapse));
+		imgui_flags_ext.add_var("always_auto_resize",
+		                        var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_AlwaysAutoResize));
+		imgui_flags_ext.add_var("no_saved_settings",
+		                        var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_NoSavedSettings));
+		imgui_flags_ext.add_var("menu_bar", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_MenuBar));
+		imgui_flags_ext.add_var("horizontal_scroll_bar",
+		                        var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_HorizontalScrollbar));
 	}
 }
 

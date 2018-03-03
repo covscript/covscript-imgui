@@ -1,8 +1,8 @@
 import imgui
 using imgui
 system.file.remove("./imgui.ini")
-#var app=fullscreen_application(0,"CovScript ImGUI Image")
-var app=window_application(0.75*imgui.get_monitor_width(0),0.75*imgui.get_monitor_height(0),"CovScript ImGUI Image")
+#var app=fullscreen_application(0,"CovScript ImGUI Canvas")
+var app=window_application(0.75*imgui.get_monitor_width(0),0.75*imgui.get_monitor_height(0),"CovScript ImGUI Canvas")
 add_font("./res/DroidSans.ttf",16)
 style_color_light()
 var window_opened=true
@@ -11,32 +11,53 @@ var radius=50
 var thickness=5
 var delta=10
 var pos_x=radius+thickness
-var pos_y=radius+thickness
+var pos_y=radius+thickness+20
 var x_add=true
 var y_add=true
 while !app.is_closed()
     app.prepare()
-    begin_window("Canvas",window_opened)
+    begin_window("Main",window_opened,{flags.menu_bar,flags.no_collapse,flags.no_title_bar,flags.no_move,flags.no_resize})
         if !window_opened
             break
         end
         set_window_pos(vec2(0,0))
         set_window_size(vec2(app.get_window_width(),app.get_window_height()))
-        color_edit4("Circle Color",col)
-        slider_float("Radius",radius,0,100)
-        slider_float("Thickness",thickness,0,100)
-        slider_float("Speed",delta,0,100)
-        delta=to_integer(delta)
-        if button(x_add?">":"<")
-            x_add=!x_add
+        if begin_menu_bar()
+            if begin_menu("Styles",true)
+                if menu_item("Classic","",true)
+                    style_color_classic()
+                end
+                if menu_item("Light","",true)
+                    style_color_light()
+                end
+                if menu_item("Dark","",true)
+                    style_color_dark()
+                end
+                end_menu()
+            end
+            if menu_item("Exit","",true)
+                system.exit(0)
+            end
+            end_menu_bar()
         end
-        same_line()
-        text("X: "+pos_x)
-        if button(y_add?"v":"^")
-            y_add=!y_add
+        if tree_node("Property")
+            color_edit4("Circle Color",col)
+            slider_float("Radius",radius,0,100)
+            slider_float("Thickness",thickness,0,100)
+            slider_float("Speed",delta,0,100)
+            delta=to_integer(delta)
+            if button(x_add?">":"<")
+                x_add=!x_add
+            end
+            same_line()
+            text("X: "+pos_x)
+            if button(y_add?"v":"^")
+                y_add=!y_add
+            end
+            same_line()
+            text("Y: "+pos_y)
+            tree_pop()
         end
-        same_line()
-        text("Y: "+pos_y)
         if is_mouse_clicked(1)
             pos_x=get_mouse_pos_x()
             pos_y=get_mouse_pos_y()
