@@ -275,10 +275,12 @@ static cs::extension imgui_ext;
 static cs::extension imgui_app_ext;
 static cs::extension imgui_img_ext;
 static cs::extension imgui_keys_ext;
+static cs::extension imgui_dirs_ext;
 static cs::extension imgui_flags_ext;
 static cs::extension_t imgui_app_ext_shared = cs::make_shared_extension(imgui_app_ext);
 static cs::extension_t imgui_img_ext_shared = cs::make_shared_extension(imgui_img_ext);
 static cs::extension_t imgui_keys_ext_shared = cs::make_shared_extension(imgui_keys_ext);
+static cs::extension_t imgui_dirs_ext_shared = cs::make_shared_extension(imgui_dirs_ext);
 static cs::extension_t imgui_flags_ext_shared = cs::make_shared_extension(imgui_flags_ext);
 
 class cni_register final {
@@ -633,6 +635,13 @@ namespace imgui_cs_ext {
 
 	CNI_NORMAL(button)
 
+	bool arrow(const string &str, ImGuiDir dir)
+	{
+		return ImGui::ArrowButton(str.c_str(), dir);
+	}
+
+	CNI_NORMAL(arrow)
+
 	void image(const image_t &img, const ImVec2 &size)
 	{
 		ImGui::Image(img->get_texture_id(), size);
@@ -810,6 +819,50 @@ namespace imgui_cs_ext {
 	}
 
 	CNI_NORMAL(menu_item)
+
+// Popups
+	bool begin_popup_item()
+	{
+		return ImGui::BeginPopupContextItem();
+	}
+
+	CNI_NORMAL(begin_popup_item)
+
+	bool begin_popup_window()
+	{
+		return ImGui::BeginPopupContextWindow();
+	}
+
+	CNI_NORMAL(begin_popup_window)
+
+	bool begin_popup_background()
+	{
+		return ImGui::BeginPopupContextVoid();
+	}
+
+	CNI_NORMAL(begin_popup_background)
+
+	void end_popup()
+	{
+		ImGui::EndPopup();
+	}
+
+	CNI_NORMAL(end_popup)
+
+// Focus, Activation
+	void set_item_default_focus()
+	{
+		ImGui::SetItemDefaultFocus();
+	}
+
+	CNI_NORMAL(set_item_default_focus)
+
+	void set_keyboard_focus_here()
+	{
+		ImGui::SetKeyboardFocusHere();
+	}
+
+	CNI_NORMAL(set_keyboard_focus_here)
 
 // Inputs
 	number get_key_index(ImGuiKey key)
@@ -989,6 +1042,7 @@ namespace imgui_cs_ext {
 		imgui_ext.add_var("applicaion", var::make_protect<extension_t>(imgui_app_ext_shared));
 		imgui_ext.add_var("bmp_image", var::make_protect<extension_t>(imgui_img_ext_shared));
 		imgui_ext.add_var("keys", var::make_protect<extension_t>(imgui_keys_ext_shared));
+		imgui_ext.add_var("dirs", var::make_protect<extension_t>(imgui_dirs_ext_shared));
 		imgui_ext.add_var("flags", var::make_protect<extension_t>(imgui_flags_ext_shared));
 		// Application
 		imgui_app_ext.add_var("get_window_width",
@@ -1027,6 +1081,12 @@ namespace imgui_cs_ext {
 		imgui_keys_ext.add_var("ctrl_x", var::make_constant<ImGuiKey>(ImGuiKey_X));
 		imgui_keys_ext.add_var("ctrl_y", var::make_constant<ImGuiKey>(ImGuiKey_Y));
 		imgui_keys_ext.add_var("ctrl_z", var::make_constant<ImGuiKey>(ImGuiKey_Z));
+		// Dirs
+		imgui_dirs_ext.add_var("left", var::make_constant<ImGuiDir>(ImGuiDir_Left));
+		imgui_dirs_ext.add_var("right", var::make_constant<ImGuiDir>(ImGuiDir_Right));
+		imgui_dirs_ext.add_var("up", var::make_constant<ImGuiDir>(ImGuiDir_Up));
+		imgui_dirs_ext.add_var("down", var::make_constant<ImGuiDir>(ImGuiDir_Down));
+		// Flags
 		imgui_flags_ext.add_var("no_title_bar", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_NoTitleBar));
 		imgui_flags_ext.add_var("no_resize", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_NoResize));
 		imgui_flags_ext.add_var("no_move", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_NoMove));
