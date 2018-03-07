@@ -196,6 +196,7 @@ namespace imgui_cs {
 		int height;
 		GLuint textureID;
 		unsigned char *data;
+
 	public:
 		image() = delete;
 
@@ -296,6 +297,7 @@ public:
 #define CNI_NAME_MIXER(PREFIX, NAME) static cni_register PREFIX##NAME
 #define CNI_REGISTER(NAME, ARGS) CNI_NAME_MIXER(_cni_register_, NAME) \
 \
+\
 (#NAME,                                                               \
  NAME, ARGS);
 #define CNI_NORMAL(name) CNI_REGISTER(name, false)
@@ -304,7 +306,7 @@ public:
 namespace imgui_cs_ext {
 	using namespace cs;
 	using application_t = std::shared_ptr<imgui_cs::application>;
-	using image_t=std::shared_ptr<imgui_cs::image>;
+	using image_t = std::shared_ptr<imgui_cs::image>;
 
 // GLFW Functions
 	number get_monitor_count()
@@ -535,7 +537,7 @@ namespace imgui_cs_ext {
 	void begin_window(const string &str, bool &open, const array &flags_arr)
 	{
 		ImGuiWindowFlags flags = 0;
-		for (auto &it:flags_arr)
+		for (auto &it : flags_arr)
 			flags |= it.const_val<ImGuiWindowFlags>();
 		ImGui::Begin(str.c_str(), &open, flags);
 	}
@@ -612,6 +614,21 @@ namespace imgui_cs_ext {
 	}
 
 	CNI_NORMAL(unindent)
+
+// ID scopes
+	void push_id(const string &id)
+	{
+		ImGui::PushID(id.c_str());
+	}
+
+	CNI_NORMAL(push_id)
+
+	void pop_id()
+	{
+		ImGui::PopID();
+	}
+
+	CNI_NORMAL(pop_id)
 
 // Widgets
 	void text(const string &str)
@@ -821,9 +838,9 @@ namespace imgui_cs_ext {
 	CNI_NORMAL(menu_item)
 
 // Popups
-	bool begin_popup_item()
+	bool begin_popup_item(const string &id)
 	{
-		return ImGui::BeginPopupContextItem();
+		return ImGui::BeginPopupContextItem(id.c_str());
 	}
 
 	CNI_NORMAL(begin_popup_item)
