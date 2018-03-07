@@ -77,7 +77,6 @@ namespace imgui_cs {
 			gl3wInit();
 			ImGui::CreateContext();
 			ImGui_ImplGlfwGL3_Init(window, true);
-			ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 		}
 
 	public:
@@ -867,12 +866,12 @@ namespace imgui_cs_ext {
 	CNI_NORMAL(end_popup)
 
 // Focus, Activation
-	void set_item_default_focus()
+	void set_scroll_here()
 	{
-		ImGui::SetItemDefaultFocus();
+		ImGui::SetScrollHere();
 	}
 
-	CNI_NORMAL(set_item_default_focus)
+	CNI_NORMAL(set_scroll_here)
 
 	void set_keyboard_focus_here()
 	{
