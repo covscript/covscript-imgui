@@ -781,6 +781,7 @@ namespace imgui_cs_ext {
 			_items[i] = items[i].const_val<string>().c_str();
 		int _current = current;
 		ImGui::ListBox(str.c_str(), &_current, _items, items.size());
+		current = _current;
 		delete[] _items;
 	}
 
