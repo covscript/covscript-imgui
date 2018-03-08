@@ -512,6 +512,20 @@ namespace imgui_cs_ext {
 
 	CNI_NORMAL(set_window_size)
 
+	void set_next_window_focus()
+	{
+		ImGui::SetNextWindowFocus();
+	}
+
+	CNI_NORMAL(set_next_window_focus)
+
+	void set_window_focus()
+	{
+		ImGui::SetWindowFocus();
+	}
+
+	CNI_NORMAL(set_window_focus)
+
 	number get_window_width()
 	{
 		return ImGui::GetWindowWidth();
