@@ -46,12 +46,12 @@ while !app.is_closed()
             slider_float("Thickness",thickness,0,100)
             slider_float("Speed",delta,0,100)
             delta=to_integer(delta)
-            if button(x_add?">":"<")
+            if arrow("x_arrow",x_add?dirs.right:dirs.left)
                 x_add=!x_add
             end
             same_line()
             text("X: "+pos_x)
-            if button(y_add?"v":"^")
+            if arrow("y_arrow",y_add?dirs.down:dirs.up)
                 y_add=!y_add
             end
             same_line()
