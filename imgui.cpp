@@ -79,7 +79,7 @@ namespace imgui_cs {
 			gl3wInit();
 			ImGui::CreateContext();
 			ImGui_ImplGlfwGL3_Init(window, true);
-			ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(get_droidsans_ttf_data(),16,nullptr,ImGui::GetIO().Fonts->GetGlyphRangesDefault());
+			ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(get_droidsans_ttf_data(), 14);
 		}
 
 	public:
