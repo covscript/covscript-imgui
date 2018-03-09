@@ -895,6 +895,14 @@ namespace imgui_cs_ext {
 
 	CNI_NORMAL(set_keyboard_focus_here)
 
+// Utilities
+	bool is_item_hovered()
+	{
+		return ImGui::IsItemHovered();
+	}
+
+	CNI_NORMAL(is_item_hovered)
+
 // Inputs
 	number get_key_index(ImGuiKey key)
 	{
