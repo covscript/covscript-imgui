@@ -1,6 +1,5 @@
 import imgui
 var app=imgui.window_application(1280,720,"CovScript ImGUI Demo")
-imgui.add_font("./res/DroidSans.ttf",16)
 imgui.style_color_dark()
 var show_demo_window = true
 var show_another_window = false

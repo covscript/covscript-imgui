@@ -3,7 +3,6 @@ using imgui
 system.file.remove("./imgui.ini")
 #var app=fullscreen_application(0,"CovScript ImGUI Sandbox")
 var app=window_application(0.75*imgui.get_monitor_width(0),0.75*imgui.get_monitor_height(0),"CovScript ImGUI Sandbox")
-add_font("./res/DroidSans.ttf",16)
 style_color_light()
 var window_opened=true
 var col=vec4(0.5,0.5,0.5,1)

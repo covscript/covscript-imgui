@@ -3,7 +3,6 @@ using imgui
 system.file.remove("./imgui.ini")
 #var app=fullscreen_application(0,"CovScript ImGUI Tests")
 var app=window_application(0.75*imgui.get_monitor_width(0),0.75*imgui.get_monitor_height(0),"CovScript ImGUI Tests")
-add_font("./res/DroidSans.ttf",16)
 var window_opened=true
 var progress=0
 var radio_choice=0
