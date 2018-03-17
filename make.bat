@@ -1,6 +1,8 @@
 @mkdir build
 @cd build
 @mkdir imports
-@gcc -c -I ..\include -static -fPIC -s -O3 ..\src\*.c -o imgui.o
-@g++ -std=c++11 -I ..\include -shared -static -fPIC -s -O3 ..\src\*.cpp ..\imgui.cpp .\imgui.o -o .\imports\imgui.cse -lglfw3 -lgdi32 -lopengl32
-@del /F /Q imgui.o
+@for /R ..\src\ %%i in (*.c) do @gcc -c -I ..\include -static -fPIC -s -O3 %%i -o %%i.o
+@for /R ..\src\ %%i in (*.cpp) do @g++ -c -I ..\include -static -fPIC -s -O3 %%i -o %%i.o
+@g++ -std=c++11 -I ..\include -shared -static -fPIC -s -O3 ..\src\*.o ..\imgui.cpp ..\impl\imgui_impl_glfw_gl3.cpp -o .\imports\imgui.cse -lglfw3 -lgdi32 -lopengl32
+@g++ -std=c++11 -I ..\include -shared -static -fPIC -s -O3 -DIMGUI_IMPL_GL2 ..\src\*.o ..\imgui.cpp ..\impl\imgui_impl_glfw_gl2.cpp -o .\imports\imgui_gl2.cse -lglfw3 -lgdi32 -lopengl32
+@del /F /Q ..\src\*.o

@@ -26,146 +26,21 @@
 // ImGUI Common Header
 #include <imgui.h>
 
-// ImGUI GL3W/GLFW3 Implement
+// GL3W/GLFW3
 #include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
-#include <imgui_impl_glfw_gl3.h>
 
 // Other Headers
 #include <cstring>
 #include <cstdio>
 
-namespace imgui_cs {
-	const char *get_droidsans_ttf_data();
-
-	class glfw_instance final {
-		static void error_callback(int error, const char *description)
-		{
-			throw cs::lang_error(description);
-		}
-
-	public:
-		glfw_instance()
-		{
-			glfwSetErrorCallback(error_callback);
-			if (!glfwInit())
-				throw cs::lang_error("Init OpenGL Error.");
-			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-#if __APPLE__
-			glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#ifdef IMGUI_IMPL_GL2
+#include "./imgui_gl2.hpp"
+#else
+#include "./imgui_gl3.hpp"
 #endif
-		}
 
-		glfw_instance(const glfw_instance &) = delete;
-
-		glfw_instance(glfw_instance &&) noexcept = delete;
-
-		~glfw_instance()
-		{
-			glfwTerminate();
-		}
-	};
-
-	class application final {
-		GLFWwindow *window = nullptr;
-		ImVec4 bg_color = {1.0f, 1.0f, 1.0f, 1.0f};
-
-		void init()
-		{
-			glfwMakeContextCurrent(window);
-			glfwSwapInterval(1);
-			gl3wInit();
-			ImGui::CreateContext();
-			ImGui_ImplGlfwGL3_Init(window, true);
-			ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(get_droidsans_ttf_data(), 14);
-		}
-
-	public:
-		application() = delete;
-
-		application(const application &) = delete;
-
-		application(application &&) noexcept = delete;
-
-		application(std::size_t monitor_id, const std::string &title)
-		{
-			int count = 0;
-			GLFWmonitor **monitors = glfwGetMonitors(&count);
-			if (monitor_id >= count)
-				throw cs::lang_error("Monitor does not exist.");
-			const GLFWvidmode *vidmode = glfwGetVideoMode(monitors[monitor_id]);
-			window = glfwCreateWindow(vidmode->width, vidmode->height, title.c_str(), monitors[monitor_id], NULL);
-			init();
-		}
-
-		application(std::size_t width, std::size_t height, const std::string &title) : window(
-			    glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr))
-		{
-			init();
-		}
-
-		~application()
-		{
-			ImGui_ImplGlfwGL3_Shutdown();
-			ImGui::DestroyContext();
-			glfwDestroyWindow(window);
-		}
-
-		int get_window_width()
-		{
-			int width = 0;
-			glfwGetWindowSize(window, &width, nullptr);
-			return width;
-		}
-
-		int get_window_height()
-		{
-			int height = 0;
-			glfwGetWindowSize(window, nullptr, &height);
-			return height;
-		}
-
-		void set_window_size(int width, int height)
-		{
-			glfwSetWindowSize(window, width, height);
-		}
-
-		void set_window_title(const std::string &str)
-		{
-			glfwSetWindowTitle(window, str.c_str());
-		}
-
-		void set_bg_color(const ImVec4 &color)
-		{
-			bg_color = color;
-		}
-
-		bool is_closed()
-		{
-			return glfwWindowShouldClose(window);
-		}
-
-		void prepare()
-		{
-			glfwPollEvents();
-			ImGui_ImplGlfwGL3_NewFrame();
-		}
-
-		void render()
-		{
-			int display_w, display_h;
-			glfwGetFramebufferSize(window, &display_w, &display_h);
-			glViewport(0, 0, display_w, display_h);
-			glClearColor(bg_color.x, bg_color.y, bg_color.z, bg_color.w);
-			glClear(GL_COLOR_BUFFER_BIT);
-			ImGui::Render();
-			ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
-			glfwSwapBuffers(window);
-		}
-	};
-
+namespace imgui_cs {
 	template<typename char_t = char>
 	class buffer final {
 		char_t *buff = nullptr;
