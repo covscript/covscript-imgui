@@ -65,6 +65,16 @@ done
 mkdir -p build
 cd build
 mkdir -p imports
-$CC $CFLAGS -c ../src/*.c -o ./imgui.o
-$CXX $CXXFLAGS ../*.cpp ../src/*.cpp ./imgui.o $LDFLAGS -o ./imports/imgui.cse
-rm ./imgui.o
+for file in ../src/*.c
+do
+$CC $CFLAGS -c $file -o $file.o &
+done
+for file in ../src/*.cpp
+do
+$CXX $CXXFLAGS -c $file -o $file.o &
+done
+wait
+$CXX $CXXFLAGS ../src/*.o ../imgui.cpp ../impl/imgui_impl_glfw_gl3.cpp $LDFLAGS -o ./imports/imgui.cse &
+$CXX $CXXFLAGS -DIMGUI_IMPL_GL2 ../src/*.o ../imgui.cpp ../impl/imgui_impl_glfw_gl2.cpp $LDFLAGS -o ./imports/imgui_gl2.cse &
+wait
+rm ../src/*.o
