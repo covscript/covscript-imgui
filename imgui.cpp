@@ -730,6 +730,20 @@ namespace imgui_cs_ext {
 	CNI_NORMAL(menu_item)
 
 // Popups
+	void open_popup(const string &id)
+	{
+		ImGui::OpenPopup(id.c_str());
+	}
+
+	CNI_NORMAL(open_popup)
+
+	bool begin_popup(const string& id)
+	{
+		return ImGui::BeginPopup(id.c_str());
+	}
+
+	CNI_NORMAL(begin_popup)
+
 	bool begin_popup_item(const string &id)
 	{
 		return ImGui::BeginPopupContextItem(id.c_str());
@@ -751,12 +765,86 @@ namespace imgui_cs_ext {
 
 	CNI_NORMAL(begin_popup_background)
 
+	bool begin_popup_modal(const string &str, bool &open, const array &flags_arr)
+	{
+		ImGuiWindowFlags flags = 0;
+		for (auto &it : flags_arr)
+			flags |= it.const_val<ImGuiWindowFlags>();
+		return ImGui::BeginPopupModal(str.c_str(), &open, flags);
+	}
+
+	CNI_NORMAL(begin_popup_modal)
+
 	void end_popup()
 	{
 		ImGui::EndPopup();
 	}
 
 	CNI_NORMAL(end_popup)
+
+	void close_current_popup()
+	{
+		ImGui::CloseCurrentPopup();
+	}
+
+	CNI_NORMAL(close_current_popup);
+
+// Columns
+	void columns(number count,const string& id,bool border)
+	{
+		ImGui::Columns(count,id.c_str(),border);
+	}
+
+	CNI_NORMAL(columns)
+
+	void next_column()
+	{
+		ImGui::NextColumn();
+	}
+
+	CNI_NORMAL(next_column)
+
+	number get_column_index()
+	{
+		return ImGui::GetColumnIndex();
+	}
+
+	CNI_NORMAL(get_column_index)
+
+	number get_column_width(number index)
+	{
+		return ImGui::GetColumnWidth();
+	}
+
+	CNI_NORMAL(get_column_width)
+
+	void set_column_width(number index,number width)
+	{
+		ImGui::SetColumnWidth(index,width);
+	}
+
+	CNI_NORMAL(set_column_width)
+
+	number get_column_offset(number index)
+	{
+		return ImGui::GetColumnOffset(index);
+	}
+
+	CNI_NORMAL(get_column_offset)
+
+	void set_column_offset(number index,number offset)
+	{
+		ImGui::SetColumnOffset(index,offset);
+	}
+
+	CNI_NORMAL(set_column_offset)
+
+	number get_columns_count()
+	{
+		return ImGui::GetColumnsCount();
+	}
+
+	CNI_NORMAL(get_columns_count)
 
 // Focus, Activation
 	void set_scroll_here()
