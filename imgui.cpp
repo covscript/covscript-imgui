@@ -37,7 +37,9 @@
 #ifdef IMGUI_IMPL_GL2
 #include "./imgui_gl2.hpp"
 #else
+
 #include "./imgui_gl3.hpp"
+
 #endif
 
 namespace imgui_cs {
@@ -529,12 +531,40 @@ namespace imgui_cs_ext {
 
 	CNI_NORMAL(text)
 
-	void bullet()
+	void text_colored(const ImVec4 &col, const string &str)
 	{
-		ImGui::Bullet();
+		ImGui::TextColored(col, "%s", str.c_str());
 	}
 
-	CNI_NORMAL(bullet)
+	CNI_NORMAL(text_colored)
+
+	void text_disabled(const string &str)
+	{
+		ImGui::TextDisabled("%s", str.c_str());
+	}
+
+	CNI_NORMAL(text_disabled)
+
+	void text_wrappered(const string &str)
+	{
+		ImGui::TextWrapped("%s", str.c_str());
+	}
+
+	CNI_NORMAL(text_wrappered)
+
+	void label_text(const string &label, const string &str)
+	{
+		ImGui::LabelText(label.c_str(), "%s", str.c_str());
+	}
+
+	CNI_NORMAL(label_text)
+
+	void bullet_text(const string &str)
+	{
+		ImGui::BulletText("%s", str.c_str());
+	}
+
+	CNI_NORMAL(bullet_text)
 
 	bool button(const string &str)
 	{
@@ -543,12 +573,19 @@ namespace imgui_cs_ext {
 
 	CNI_NORMAL(button)
 
-	bool arrow(const string &str, ImGuiDir dir)
+	bool small_button(const string &str)
+	{
+		return ImGui::SmallButton(str.c_str());
+	}
+
+	CNI_NORMAL(small_button)
+
+	bool arrow_button(const string &str, ImGuiDir dir)
 	{
 		return ImGui::ArrowButton(str.c_str(), dir);
 	}
 
-	CNI_NORMAL(arrow)
+	CNI_NORMAL(arrow_button)
 
 	void image(const image_t &img, const ImVec2 &size)
 	{
@@ -580,12 +617,40 @@ namespace imgui_cs_ext {
 
 	CNI_NORMAL(radio_button)
 
+	float plot_value_getter(void *data, int idx)
+	{
+		return (*reinterpret_cast<const array *>(data))[idx].const_val<number>();
+	}
+
+	void plot_lines(const string &label, const string &text, const array &data)
+	{
+		ImGui::PlotLines(label.c_str(), &plot_value_getter, reinterpret_cast<void *>(const_cast<array *>(&data)),
+		                 data.size(), 0, text.c_str());
+	}
+
+	CNI_NORMAL(plot_lines)
+
+	void plot_histogram(const string &label, const string &text, const array &data)
+	{
+		ImGui::PlotHistogram(label.c_str(), &plot_value_getter, reinterpret_cast<void *>(const_cast<array *>(&data)),
+		                     data.size(), 0, text.c_str());
+	}
+
+	CNI_NORMAL(plot_histogram)
+
 	void progress_bar(number fraction, const string &overlay)
 	{
 		ImGui::ProgressBar(fraction, ImVec2(-1, 0), overlay.c_str());
 	}
 
 	CNI_NORMAL(progress_bar)
+
+	void bullet()
+	{
+		ImGui::Bullet();
+	}
+
+	CNI_NORMAL(bullet)
 
 	void combo_box(const string &str, number &current, const array &items)
 	{
@@ -599,6 +664,15 @@ namespace imgui_cs_ext {
 	}
 
 	CNI_NORMAL(combo_box)
+
+	void drag_float(const string &label, number &n)
+	{
+		float f = static_cast<float>(n);
+		ImGui::DragFloat(label.c_str(), &f);
+		n = f;
+	}
+
+	CNI_NORMAL(drag_float)
 
 	void slider_float(const string &str, number &n, number min, number max)
 	{
@@ -679,6 +753,28 @@ namespace imgui_cs_ext {
 
 	CNI_NORMAL(list_box)
 
+// Tooltips
+	void set_tooltip(const string &str)
+	{
+		ImGui::SetTooltip("%s", str.c_str());
+	}
+
+	CNI_NORMAL(set_tooltip)
+
+	void begin_tooltip()
+	{
+		ImGui::BeginTooltip();
+	}
+
+	CNI_NORMAL(begin_tooltip)
+
+	void end_tooltip()
+	{
+		ImGui::EndTooltip();
+	}
+
+	CNI_NORMAL(end_tooltip)
+
 // Menus
 	bool begin_main_menu_bar()
 	{
@@ -737,7 +833,7 @@ namespace imgui_cs_ext {
 
 	CNI_NORMAL(open_popup)
 
-	bool begin_popup(const string& id)
+	bool begin_popup(const string &id)
 	{
 		return ImGui::BeginPopup(id.c_str());
 	}
@@ -790,9 +886,9 @@ namespace imgui_cs_ext {
 	CNI_NORMAL(close_current_popup);
 
 // Columns
-	void columns(number count,const string& id,bool border)
+	void columns(number count, const string &id, bool border)
 	{
-		ImGui::Columns(count,id.c_str(),border);
+		ImGui::Columns(count, id.c_str(), border);
 	}
 
 	CNI_NORMAL(columns)
@@ -818,9 +914,9 @@ namespace imgui_cs_ext {
 
 	CNI_NORMAL(get_column_width)
 
-	void set_column_width(number index,number width)
+	void set_column_width(number index, number width)
 	{
-		ImGui::SetColumnWidth(index,width);
+		ImGui::SetColumnWidth(index, width);
 	}
 
 	CNI_NORMAL(set_column_width)
@@ -832,9 +928,9 @@ namespace imgui_cs_ext {
 
 	CNI_NORMAL(get_column_offset)
 
-	void set_column_offset(number index,number offset)
+	void set_column_offset(number index, number offset)
 	{
-		ImGui::SetColumnOffset(index,offset);
+		ImGui::SetColumnOffset(index, offset);
 	}
 
 	CNI_NORMAL(set_column_offset)
