@@ -321,16 +321,17 @@ namespace imgui_cs_ext {
 	CNI_NORMAL(get_framerate)
 
 // Styles
-	ImFont* add_font(const string &str, number size)
+	ImFont *add_font(const string &str, number size)
 	{
-		ImGui::GetIO().FontDefault=ImGui::GetIO().Fonts->AddFontFromFileTTF(str.c_str(), size);
+		ImGui::GetIO().FontDefault = ImGui::GetIO().Fonts->AddFontFromFileTTF(str.c_str(), size);
 	}
 
 	CNI_NORMAL(add_font)
 
-	ImFont* add_font_default(number size)
+	ImFont *add_font_default(number size)
 	{
-		ImGui::GetIO().FontDefault=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(imgui_cs::get_droidsans_ttf_data(), size);
+		ImGui::GetIO().FontDefault = ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(
+		                                 imgui_cs::get_droidsans_ttf_data(), size);
 	}
 
 	CNI_NORMAL(add_font_default)
@@ -344,7 +345,7 @@ namespace imgui_cs_ext {
 
 	void set_font_scale(number scale)
 	{
-		ImGui::GetIO().FontGlobalScale=scale;
+		ImGui::GetIO().FontGlobalScale = scale;
 	}
 
 	CNI_NORMAL(set_font_scale)
