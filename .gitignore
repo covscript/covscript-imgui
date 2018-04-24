@@ -43,6 +43,7 @@ build/
 # ImGUI Files
 imgui.ini
 
-# IDEA
+# IDEs
+.vscode/
 .idea/
 cmake-build-debug/
