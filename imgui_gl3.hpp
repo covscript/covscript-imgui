@@ -18,7 +18,8 @@
 * Email: mikecovlee@163.com
 * Github: https://github.com/mikecovlee
 */
-#include "./impl/imgui_impl_glfw_gl3.h"
+#include "./impl/imgui_impl_glfw.h"
+#include "./impl/imgui_impl_opengl3.h"
 
 namespace imgui_cs {
 	const char *get_droidsans_ttf_data();
@@ -62,8 +63,10 @@ namespace imgui_cs {
 			glfwMakeContextCurrent(window);
 			glfwSwapInterval(1);
 			gl3wInit();
-			ImGui::CreateContext();
-			ImGui_ImplGlfwGL3_Init(window, true);
+			IMGUI_CHECKVERSION();
+    		ImGui::CreateContext();
+			ImGui_ImplGlfw_InitForOpenGL(window, true);
+    		ImGui_ImplOpenGL3_Init();
 			ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(get_droidsans_ttf_data(), 14);
 		}
 
@@ -93,9 +96,11 @@ namespace imgui_cs {
 
 		~application()
 		{
-			ImGui_ImplGlfwGL3_Shutdown();
-			ImGui::DestroyContext();
-			glfwDestroyWindow(window);
+			ImGui_ImplOpenGL3_Shutdown();
+    		ImGui_ImplGlfw_Shutdown();
+    		ImGui::DestroyContext();
+    		glfwDestroyWindow(window);
+    		glfwTerminate();
 		}
 
 		int get_window_width()
@@ -135,19 +140,22 @@ namespace imgui_cs {
 		void prepare()
 		{
 			glfwPollEvents();
-			ImGui_ImplGlfwGL3_NewFrame();
+			ImGui_ImplOpenGL3_NewFrame();
+        	ImGui_ImplGlfw_NewFrame();
+        	ImGui::NewFrame();
 		}
 
 		void render()
 		{
+			ImGui::Render();
 			int display_w, display_h;
 			glfwGetFramebufferSize(window, &display_w, &display_h);
 			glViewport(0, 0, display_w, display_h);
 			glClearColor(bg_color.x, bg_color.y, bg_color.z, bg_color.w);
 			glClear(GL_COLOR_BUFFER_BIT);
-			ImGui::Render();
-			ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
-			glfwSwapBuffers(window);
+			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        	glfwMakeContextCurrent(window);
+        	glfwSwapBuffers(window);
 		}
 	};
 }
