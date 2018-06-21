@@ -74,7 +74,7 @@ do
 $CXX $CXXFLAGS -c $file -o $file.o &
 done
 wait
-$CXX $CXXFLAGS ../src/*.o ../imgui.cpp ../impl/imgui_impl_glfw_gl3.cpp $LDFLAGS -o ./imports/imgui.cse &
-$CXX $CXXFLAGS -DIMGUI_IMPL_GL2 ../src/*.o ../imgui.cpp ../impl/imgui_impl_glfw_gl2.cpp $LDFLAGS -o ./imports/imgui_gl2.cse &
+$CXX $CXXFLAGS ../src/*.o ../imgui.cpp ../impl/imgui_impl_glfw.cpp ../impl/imgui_impl_opengl3.cpp $LDFLAGS -o ./imports/imgui.cse &
+$CXX $CXXFLAGS -DIMGUI_IMPL_GL2 ../src/*.o ../imgui.cpp ../impl/imgui_impl_glfw.cpp ../impl/imgui_impl_opengl2.cpp $LDFLAGS -o ./imports/imgui_gl2.cse &
 wait
 rm ../src/*.o
