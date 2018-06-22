@@ -24,7 +24,7 @@
 namespace imgui_cs {
 	const char *get_droidsans_ttf_data();
 
-    class glfw_instance final {
+	class glfw_instance final {
 		static void error_callback(int error, const char *description)
 		{
 			throw cs::lang_error(description);
@@ -64,9 +64,9 @@ namespace imgui_cs {
 			glfwSwapInterval(1);
 			gl3wInit();
 			IMGUI_CHECKVERSION();
-    		ImGui::CreateContext();
+			ImGui::CreateContext();
 			ImGui_ImplGlfw_InitForOpenGL(window, true);
-    		ImGui_ImplOpenGL3_Init();
+			ImGui_ImplOpenGL3_Init();
 			ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(get_droidsans_ttf_data(), 14);
 		}
 
@@ -97,10 +97,10 @@ namespace imgui_cs {
 		~application()
 		{
 			ImGui_ImplOpenGL3_Shutdown();
-    		ImGui_ImplGlfw_Shutdown();
-    		ImGui::DestroyContext();
-    		glfwDestroyWindow(window);
-    		glfwTerminate();
+			ImGui_ImplGlfw_Shutdown();
+			ImGui::DestroyContext();
+			glfwDestroyWindow(window);
+			glfwTerminate();
 		}
 
 		int get_window_width()
@@ -141,8 +141,8 @@ namespace imgui_cs {
 		{
 			glfwPollEvents();
 			ImGui_ImplOpenGL3_NewFrame();
-        	ImGui_ImplGlfw_NewFrame();
-        	ImGui::NewFrame();
+			ImGui_ImplGlfw_NewFrame();
+			ImGui::NewFrame();
 		}
 
 		void render()
@@ -154,8 +154,8 @@ namespace imgui_cs {
 			glClearColor(bg_color.x, bg_color.y, bg_color.z, bg_color.w);
 			glClear(GL_COLOR_BUFFER_BIT);
 			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        	glfwMakeContextCurrent(window);
-        	glfwSwapBuffers(window);
+			glfwMakeContextCurrent(window);
+			glfwSwapBuffers(window);
 		}
 	};
 }

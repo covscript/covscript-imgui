@@ -24,7 +24,7 @@
 namespace imgui_cs {
 	const char *get_droidsans_ttf_data();
 
-    class glfw_instance final {
+	class glfw_instance final {
 		static void error_callback(int error, const char *description)
 		{
 			throw cs::lang_error(description);
@@ -60,7 +60,7 @@ namespace imgui_cs {
 			IMGUI_CHECKVERSION();
 			ImGui::CreateContext();
 			ImGui_ImplGlfw_InitForOpenGL(window, true);
-    		ImGui_ImplOpenGL2_Init();
+			ImGui_ImplOpenGL2_Init();
 			ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(get_droidsans_ttf_data(), 14);
 		}
 
@@ -91,10 +91,10 @@ namespace imgui_cs {
 		~application()
 		{
 			ImGui_ImplOpenGL2_Shutdown();
-    		ImGui_ImplGlfw_Shutdown();
-    		ImGui::DestroyContext();
-    		glfwDestroyWindow(window);
-    		glfwTerminate();
+			ImGui_ImplGlfw_Shutdown();
+			ImGui::DestroyContext();
+			glfwDestroyWindow(window);
+			glfwTerminate();
 		}
 
 		int get_window_width()
@@ -135,8 +135,8 @@ namespace imgui_cs {
 		{
 			glfwPollEvents();
 			ImGui_ImplOpenGL2_NewFrame();
-        	ImGui_ImplGlfw_NewFrame();
-        	ImGui::NewFrame();
+			ImGui_ImplGlfw_NewFrame();
+			ImGui::NewFrame();
 		}
 
 		void render()

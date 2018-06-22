@@ -107,7 +107,8 @@ namespace imgui_cs {
 			if (image_size == 0)
 				image_size = width * height * 3;
 			data = new unsigned char[image_size];
-			fread(data, 1, image_size, file);
+			if (fread(data, 1, image_size, file) != image_size)
+				throw cs::lang_error("Broken BMP file");
 			fclose(file);
 			unsigned char *reversed_data = new unsigned char[image_size];
 			int row_size = width * 3;
