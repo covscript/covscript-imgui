@@ -36,7 +36,8 @@
 
 #ifdef _MSC_VER
 #pragma warning (disable: 4996) // 'This function or variable may be unsafe': strcpy, strdup, sprintf, vsnprintf, sscanf, fopen
-#define snprintf _snprintf
+#define snprintf  _snprintf
+#define vsnprintf _vsnprintf
 #endif
 #ifdef __clang__
 #pragma clang diagnostic ignored "-Wold-style-cast"             // warning : use of old-style cast                              // yes, they are more terse.
@@ -819,7 +820,7 @@ void ImGui::ShowDemoWindow(bool* p_open)
             // Tip: If your float aren't contiguous but part of a structure, you can pass a pointer to your first float and the sizeof() of your structure in the Stride parameter.
             static float values[90] = { 0 };
             static int values_offset = 0;
-            static float refresh_time = 0.0f;
+            static double refresh_time = 0.0;
             if (!animate || refresh_time == 0.0f)
                 refresh_time = ImGui::GetTime();
             while (refresh_time < ImGui::GetTime()) // Create dummy data at fixed 60 hz rate for the demo
@@ -1034,7 +1035,7 @@ void ImGui::ShowDemoWindow(bool* p_open)
             const ImS64   s64_zero = 0,   s64_one = 1,   s64_fifty = 50, s64_min = LLONG_MIN/2, s64_max = LLONG_MAX/2,  s64_hi_a = LLONG_MAX/2 - 100,  s64_hi_b = LLONG_MAX/2;
             const ImU64   u64_zero = 0,   u64_one = 1,   u64_fifty = 50, u64_min = 0,           u64_max = ULLONG_MAX/2, u64_hi_a = ULLONG_MAX/2 - 100, u64_hi_b = ULLONG_MAX/2;
             const float   f32_zero = 0.f, f32_one = 1.f, f32_lo_a = -10000000000.0f, f32_hi_a = +10000000000.0f;
-            const double  f64_zero = 0.,  f64_one = 1.,  f64_lo_a = -1000000000000000, f64_hi_a = +1000000000000000;
+            const double  f64_zero = 0.,  f64_one = 1.,  f64_lo_a = -1000000000000000.0, f64_hi_a = +1000000000000000.0;
 
             // State
             static ImS32  s32_v = -1;
@@ -1533,10 +1534,26 @@ void ImGui::ShowDemoWindow(bool* p_open)
             ImGui::PopItemWidth();
 
             // Dummy
-            ImVec2 sz(30,30);
-            ImGui::Button("A", sz); ImGui::SameLine();
-            ImGui::Dummy(sz); ImGui::SameLine();
-            ImGui::Button("B", sz);
+            ImVec2 button_sz(40,40);
+            ImGui::Button("A", button_sz); ImGui::SameLine();
+            ImGui::Dummy(button_sz); ImGui::SameLine();
+            ImGui::Button("B", button_sz);
+
+            // Manually wrapping (we should eventually provide this as an automatic layout feature, but for now you can do it manually)
+            ImGui::Text("Manually wrapping:");
+            ImGuiStyle& style = ImGui::GetStyle();
+            int buttons_count = 20;
+            float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
+            for (int n = 0; n < buttons_count; n++)
+            {
+                ImGui::PushID(n);
+                ImGui::Button("Box", button_sz);
+                float last_button_x2 = ImGui::GetItemRectMax().x;
+                float next_button_x2 = last_button_x2 + style.ItemSpacing.x + button_sz.x; // Expected position if next button was on same line
+                if (n + 1 < buttons_count && next_button_x2 < window_visible_x2)
+                    ImGui::SameLine();
+                ImGui::PopID();
+            }
 
             ImGui::TreePop();
         }
@@ -2138,6 +2155,10 @@ void ImGui::ShowDemoWindow(bool* p_open)
         ImGui::SameLine(); ShowHelpMarker("Instruct navigation to move the mouse cursor. See comment for ImGuiConfigFlags_NavEnableSetMousePos.");
         ImGui::CheckboxFlags("io.ConfigFlags: NoMouseCursorChange", (unsigned int *)&io.ConfigFlags, ImGuiConfigFlags_NoMouseCursorChange);
         ImGui::SameLine(); ShowHelpMarker("Instruct back-end to not alter mouse cursor shape and visibility.");
+        ImGui::Checkbox("io.ConfigCursorBlink", &io.ConfigCursorBlink);
+        ImGui::SameLine(); ShowHelpMarker("Set to false to disable blinking cursor, for users who consider it distracting");
+        ImGui::Checkbox("io.ConfigResizeWindowsFromEdges [beta]", &io.ConfigResizeWindowsFromEdges);
+        ImGui::SameLine(); ShowHelpMarker("Enable resizing of windows from their edges and from the lower-left corner. This requires (io.BackendFlags & ImGuiBackendFlags_HasMouseCursors) because it needs mouse cursor feedback.");
 
         if (ImGui::TreeNode("Keyboard, Mouse & Navigation State"))
         {
@@ -2476,8 +2497,8 @@ void ImGui::ShowStyleEditor(ImGuiStyle* ref)
                 ImGui::Text("The quick brown fox jumps over the lazy dog");
                 ImGui::PopFont();
                 ImGui::DragFloat("Font scale", &font->Scale, 0.005f, 0.3f, 2.0f, "%.1f");   // Scale only this font
-                ImGui::InputFloat("Font offset", &font->DisplayOffset.y, 1, 1, 0);
                 ImGui::SameLine(); ShowHelpMarker("Note than the default embedded font is NOT meant to be scaled.\n\nFont are currently rendered into bitmaps at a given size at the time of building the atlas. You may oversample them to get some flexibility with scaling. You can also render at multiple sizes and select which one to use at runtime.\n\n(Glimmer of hope: the atlas system should hopefully be rewritten in the future to make scaling more natural and automatic.)");
+                ImGui::InputFloat("Font offset", &font->DisplayOffset.y, 1, 1, "%.0f");
                 ImGui::Text("Ascent: %f, Descent: %f, Height: %f", font->Ascent, font->Descent, font->Ascent - font->Descent);
                 ImGui::Text("Fallback character: '%c' (%d)", font->FallbackChar, font->FallbackChar);
                 ImGui::Text("Texture surface: %d pixels (approx) ~ %dx%d", font->MetricsTotalSurface, (int)sqrtf((float)font->MetricsTotalSurface), (int)sqrtf((float)font->MetricsTotalSurface));
@@ -3020,8 +3041,8 @@ static void ShowExampleAppLog(bool* p_open)
     static ExampleAppLog log;
 
     // Demo: add random items (unless Ctrl is held)
-    static float last_time = -1.0f;
-    float time = ImGui::GetTime();
+    static double last_time = -1.0;
+    double time = ImGui::GetTime();
     if (time - last_time >= 0.20f && !ImGui::GetIO().KeyCtrl)
     {
         const char* random_words[] = { "system", "info", "warning", "error", "fatal", "notice", "log" };
