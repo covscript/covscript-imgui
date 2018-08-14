@@ -157,11 +157,11 @@ static cs::extension imgui_img_ext;
 static cs::extension imgui_keys_ext;
 static cs::extension imgui_dirs_ext;
 static cs::extension imgui_flags_ext;
-static cs::extension_t imgui_app_ext_shared = cs::make_shared_extension(imgui_app_ext);
-static cs::extension_t imgui_img_ext_shared = cs::make_shared_extension(imgui_img_ext);
-static cs::extension_t imgui_keys_ext_shared = cs::make_shared_extension(imgui_keys_ext);
-static cs::extension_t imgui_dirs_ext_shared = cs::make_shared_extension(imgui_dirs_ext);
-static cs::extension_t imgui_flags_ext_shared = cs::make_shared_extension(imgui_flags_ext);
+static cs::extension_t imgui_app_ext_shared = cs::make_shared_namespace(imgui_app_ext);
+static cs::extension_t imgui_img_ext_shared = cs::make_shared_namespace(imgui_img_ext);
+static cs::extension_t imgui_keys_ext_shared = cs::make_shared_namespace(imgui_keys_ext);
+static cs::extension_t imgui_dirs_ext_shared = cs::make_shared_namespace(imgui_dirs_ext);
+static cs::extension_t imgui_flags_ext_shared = cs::make_shared_namespace(imgui_flags_ext);
 
 class cni_register final {
 public:
