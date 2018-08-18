@@ -933,7 +933,7 @@ static void             SetClipboardTextFn_DefaultImpl(void* user_data, const ch
 static void             ImeSetInputScreenPosFn_DefaultImpl(int x, int y);
 
 //-----------------------------------------------------------------------------
-// Context
+// Context and Memory Allocators
 //-----------------------------------------------------------------------------
 
 // Current context pointer. Implicitly used by all ImGui functions. Always assumed to be != NULL.
@@ -960,7 +960,6 @@ static void    FreeWrapper(void* ptr, void* user_data)        { (void)user_data;
 static void*  (*GImAllocatorAllocFunc)(size_t size, void* user_data) = MallocWrapper;
 static void   (*GImAllocatorFreeFunc)(void* ptr, void* user_data) = FreeWrapper;
 static void*    GImAllocatorUserData = NULL;
-static size_t   GImAllocatorActiveAllocationsCount = 0;
 
 //-----------------------------------------------------------------------------
 // User facing structures
@@ -1478,6 +1477,13 @@ static inline int ImTextCharToUtf8(char* buf, int buf_size, unsigned int c)
         buf[2] = (char)(0x80 + ((c ) & 0x3f));
         return 3;
     }
+}
+
+// Not optimal but we very rarely use this function.
+int ImTextCountUtf8BytesFromChar(const char* in_text, const char* in_text_end)
+{
+    unsigned int dummy = 0;
+    return ImTextCharFromUtf8(&dummy, in_text, in_text_end);
 }
 
 static inline int ImTextCountUtf8BytesFromChar(unsigned int c)
@@ -2272,7 +2278,7 @@ void ImGui::SetActiveID(ImGuiID id, ImGuiWindow* window)
     g.ActiveIdWindow = window;
     if (id)
     {
-        g.ActiveIdIsAlive = true;
+        g.ActiveIdIsAlive = id;
         g.ActiveIdSource = (g.NavActivateId == id || g.NavInputId == id || g.NavJustTabbedId == id || g.NavJustMovedToId == id) ? ImGuiInputSource_Nav : ImGuiInputSource_Mouse;
     }
 }
@@ -2323,7 +2329,7 @@ void ImGui::KeepAliveID(ImGuiID id)
 {
     ImGuiContext& g = *GImGui;
     if (g.ActiveId == id)
-        g.ActiveIdIsAlive = true;
+        g.ActiveIdIsAlive = id;
     if (g.ActiveIdPreviousFrame == id)
         g.ActiveIdPreviousFrameIsAlive = true;
 }
@@ -2845,13 +2851,16 @@ float ImGui::CalcWrapWidthForPos(const ImVec2& pos, float wrap_pos_x)
 
 void* ImGui::MemAlloc(size_t size)
 {
-    GImAllocatorActiveAllocationsCount++;
+    if (ImGuiContext* ctx = GImGui)
+        ctx->IO.MetricsActiveAllocations++;
     return GImAllocatorAllocFunc(size, GImAllocatorUserData);
 }
 
 void ImGui::MemFree(void* ptr)
 {
-    if (ptr) GImAllocatorActiveAllocationsCount--;
+    if (ptr) 
+        if (ImGuiContext* ctx = GImGui)
+            ctx->IO.MetricsActiveAllocations--;
     return GImAllocatorFreeFunc(ptr, GImAllocatorUserData);
 }
 
@@ -3250,7 +3259,7 @@ void ImGui::NavUpdateWindowingList()
     SetNextWindowSizeConstraints(ImVec2(g.IO.DisplaySize.x * 0.20f, g.IO.DisplaySize.y * 0.20f), ImVec2(FLT_MAX, FLT_MAX));
     SetNextWindowPos(g.IO.DisplaySize * 0.5f, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
     PushStyleVar(ImGuiStyleVar_WindowPadding, g.Style.WindowPadding * 2.0f);
-    Begin("###NavWindowingList", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize);
+    Begin("###NavWindowingList", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings);
     for (int n = g.Windows.Size - 1; n >= 0; n--)
     {
         ImGuiWindow* window = g.Windows[n];
@@ -3932,7 +3941,7 @@ void ImGui::NewFrame()
     g.HoveredIdPreviousFrame = g.HoveredId;
     g.HoveredId = 0;
     g.HoveredIdAllowOverlap = false;
-    if (!g.ActiveIdIsAlive && g.ActiveIdPreviousFrame == g.ActiveId && g.ActiveId != 0)
+    if (g.ActiveIdIsAlive != g.ActiveId && g.ActiveIdPreviousFrame == g.ActiveId && g.ActiveId != 0)
         ClearActiveID();
     if (g.ActiveId)
         g.ActiveIdTimer += g.IO.DeltaTime;
@@ -3940,7 +3949,8 @@ void ImGui::NewFrame()
     g.ActiveIdPreviousFrame = g.ActiveId;
     g.ActiveIdPreviousFrameWindow = g.ActiveIdWindow;
     g.ActiveIdPreviousFrameValueChanged = g.ActiveIdValueChanged;
-    g.ActiveIdIsAlive = g.ActiveIdPreviousFrameIsAlive = false;
+    g.ActiveIdIsAlive = 0;
+    g.ActiveIdPreviousFrameIsAlive = false;
     g.ActiveIdIsJustActivated = false;
     if (g.ScalarAsInputTextId && g.ActiveId != g.ScalarAsInputTextId)
         g.ScalarAsInputTextId = 0;
@@ -13047,17 +13057,25 @@ bool ImGui::SplitterBehavior(const ImRect& bb, ImGuiID id, ImGuiAxis axis, float
         float mouse_delta = (axis == ImGuiAxis_Y) ? mouse_delta_2d.y : mouse_delta_2d.x;
 
         // Minimum pane size
-        if (mouse_delta < min_size1 - *size1)
-            mouse_delta = min_size1 - *size1;
-        if (mouse_delta > *size2 - min_size2)
-            mouse_delta = *size2 - min_size2;
+        float size_1_maximum_delta = ImMax(0.0f, *size1 - min_size1);
+        float size_2_maximum_delta = ImMax(0.0f, *size2 - min_size2);
+        if (mouse_delta < -size_1_maximum_delta)
+            mouse_delta = -size_1_maximum_delta;
+        if (mouse_delta > size_2_maximum_delta)
+            mouse_delta = size_2_maximum_delta;
 
         // Apply resize
-        *size1 += mouse_delta;
-        *size2 -= mouse_delta;
-        bb_render.Translate((axis == ImGuiAxis_X) ? ImVec2(mouse_delta, 0.0f) : ImVec2(0.0f, mouse_delta));
-
-        MarkItemValueChanged(id);
+        if (mouse_delta != 0.0f)
+        {
+            if (mouse_delta < 0.0f)
+                IM_ASSERT(*size1 + mouse_delta >= min_size1);
+            if (mouse_delta > 0.0f)
+               IM_ASSERT(*size2 - mouse_delta >= min_size2);
+            *size1 += mouse_delta;
+            *size2 -= mouse_delta;
+            bb_render.Translate((axis == ImGuiAxis_X) ? ImVec2(mouse_delta, 0.0f) : ImVec2(0.0f, mouse_delta));
+            MarkItemValueChanged(id);
+        }
     }
 
     // Render
@@ -13153,7 +13171,7 @@ void ImGui::EndGroup()
     // If the current ActiveId was declared within the boundary of our group, we copy it to LastItemId so IsItemActive(), IsItemDeactivated() etc. will be functional on the entire group.
     // It would be be neater if we replaced window.DC.LastItemId by e.g. 'bool LastItemIsActive', but put a little more burden on individual widgets.
     // (and if you grep for LastItemId you'll notice it is only used in that context.
-    if (!group_data.BackupActiveIdIsAlive && g.ActiveIdIsAlive && g.ActiveId) // && g.ActiveIdWindow->RootWindow == window->RootWindow)
+    if ((group_data.BackupActiveIdIsAlive != g.ActiveId) && (g.ActiveIdIsAlive == g.ActiveId) && g.ActiveId) // && g.ActiveIdWindow->RootWindow == window->RootWindow)
         window->DC.LastItemId = g.ActiveId;
     else if (!group_data.BackupActiveIdPreviousFrameIsAlive && g.ActiveIdPreviousFrameIsAlive) // && g.ActiveIdPreviousFrameWindow->RootWindow == window->RootWindow)
         window->DC.LastItemId = g.ActiveIdPreviousFrame;
@@ -14032,7 +14050,7 @@ void ImGui::ShowMetricsWindow(bool* p_open)
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
         ImGui::Text("%d vertices, %d indices (%d triangles)", io.MetricsRenderVertices, io.MetricsRenderIndices, io.MetricsRenderIndices / 3);
         ImGui::Text("%d active windows (%d visible)", io.MetricsActiveWindows, io.MetricsRenderWindows);
-        ImGui::Text("%d allocations", (int)GImAllocatorActiveAllocationsCount);
+        ImGui::Text("%d allocations", io.MetricsActiveAllocations);
         ImGui::Checkbox("Show clipping rectangles when hovering draw commands", &show_draw_cmd_clip_rects);
         ImGui::Checkbox("Ctrl shows window begin order", &show_window_begin_order);
 
