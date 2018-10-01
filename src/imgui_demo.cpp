@@ -207,16 +207,18 @@ void ImGui::ShowDemoWindow(bool* p_open)
     static bool no_collapse = false;
     static bool no_close = false;
     static bool no_nav = false;
-
+    static bool no_bring_to_front = false;
+    
     ImGuiWindowFlags window_flags = 0;
-    if (no_titlebar)  window_flags |= ImGuiWindowFlags_NoTitleBar;
-    if (no_scrollbar) window_flags |= ImGuiWindowFlags_NoScrollbar;
-    if (!no_menu)     window_flags |= ImGuiWindowFlags_MenuBar;
-    if (no_move)      window_flags |= ImGuiWindowFlags_NoMove;
-    if (no_resize)    window_flags |= ImGuiWindowFlags_NoResize;
-    if (no_collapse)  window_flags |= ImGuiWindowFlags_NoCollapse;
-    if (no_nav)       window_flags |= ImGuiWindowFlags_NoNav;
-    if (no_close)     p_open = NULL; // Don't pass our bool* to Begin
+    if (no_titlebar)        window_flags |= ImGuiWindowFlags_NoTitleBar;
+    if (no_scrollbar)       window_flags |= ImGuiWindowFlags_NoScrollbar;
+    if (!no_menu)           window_flags |= ImGuiWindowFlags_MenuBar;
+    if (no_move)            window_flags |= ImGuiWindowFlags_NoMove;
+    if (no_resize)          window_flags |= ImGuiWindowFlags_NoResize;
+    if (no_collapse)        window_flags |= ImGuiWindowFlags_NoCollapse;
+    if (no_nav)             window_flags |= ImGuiWindowFlags_NoNav;
+    if (no_bring_to_front)  window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
+    if (no_close)           p_open = NULL; // Don't pass our bool* to Begin
 
     // We specify a default position/size in case there's no data in the .ini file. Typically this isn't required! We only do it to make the Demo applications a little more welcoming.
     ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiCond_FirstUseEver);
@@ -359,7 +361,8 @@ void ImGui::ShowDemoWindow(bool* p_open)
         ImGui::Checkbox("No resize", &no_resize); ImGui::SameLine(300);
         ImGui::Checkbox("No collapse", &no_collapse);
         ImGui::Checkbox("No close", &no_close); ImGui::SameLine(150);
-        ImGui::Checkbox("No nav", &no_nav);
+        ImGui::Checkbox("No nav", &no_nav); ImGui::SameLine(300);
+        ImGui::Checkbox("No bring to front", &no_bring_to_front);
     }
 
     if (ImGui::CollapsingHeader("Widgets"))
@@ -386,7 +389,8 @@ void ImGui::ShowDemoWindow(bool* p_open)
             // Color buttons, demonstrate using PushID() to add unique identifier in the ID stack, and changing style.
             for (int i = 0; i < 7; i++)
             {
-                if (i > 0) ImGui::SameLine();
+                if (i > 0) 
+                    ImGui::SameLine();
                 ImGui::PushID(i);
                 ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(i/7.0f, 0.6f, 0.6f));
                 ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(i/7.0f, 0.7f, 0.7f));
@@ -396,7 +400,12 @@ void ImGui::ShowDemoWindow(bool* p_open)
                 ImGui::PopID();
             }
 
-            // Arrow buttons
+            // Use AlignTextToFramePadding() to align text baseline to the baseline of framed elements (otherwise a Text+SameLine+Button sequence will have the text a little too high by default)
+            ImGui::AlignTextToFramePadding();
+            ImGui::Text("Hold to repeat:");
+            ImGui::SameLine();
+
+            // Arrow buttons with Repeater
             static int counter = 0;
             float spacing = ImGui::GetStyle().ItemInnerSpacing.x;
             ImGui::PushButtonRepeat(true);
@@ -1502,10 +1511,10 @@ void ImGui::ShowDemoWindow(bool* p_open)
                 {
                     ImGui::Text("%04d: scrollable region", i);
                     if (goto_line && line == i)
-                        ImGui::SetScrollHere();
+                        ImGui::SetScrollHereY();
                 }
                 if (goto_line && line >= 100)
-                    ImGui::SetScrollHere();
+                    ImGui::SetScrollHereY();
                 ImGui::EndChild();
             }
 
@@ -1764,7 +1773,7 @@ void ImGui::ShowDemoWindow(bool* p_open)
 
         if (ImGui::TreeNode("Scrolling"))
         {
-            ImGui::TextWrapped("(Use SetScrollHere() or SetScrollFromPosY() to scroll to a given position.)");
+            ImGui::TextWrapped("(Use SetScrollHereY() or SetScrollFromPosY() to scroll to a given position.)");
             static bool track = true;
             static int track_line = 50, scroll_to_px = 200;
             ImGui::Checkbox("Track", &track);
@@ -1788,7 +1797,7 @@ void ImGui::ShowDemoWindow(bool* p_open)
                     if (track && line == track_line)
                     {
                         ImGui::TextColored(ImColor(255,255,0), "Line %d", line);
-                        ImGui::SetScrollHere(i * 0.25f); // 0.0f:top, 0.5f:center, 1.0f:bottom
+                        ImGui::SetScrollHereY(i * 0.25f); // 0.0f:top, 0.5f:center, 1.0f:bottom
                     }
                     else
                     {
@@ -2474,8 +2483,8 @@ void ImGui::ShowStyleEditor(ImGuiStyle* ref)
         ImGui::Checkbox("Anti-aliased lines", &style.AntiAliasedLines); ImGui::SameLine(); ShowHelpMarker("When disabling anti-aliasing lines, you'll probably want to disable borders in your style as well.");
         ImGui::Checkbox("Anti-aliased fill", &style.AntiAliasedFill);
         ImGui::PushItemWidth(100);
-        ImGui::DragFloat("Curve Tessellation Tolerance", &style.CurveTessellationTol, 0.02f, 0.10f, FLT_MAX, NULL, 2.0f);
-        if (style.CurveTessellationTol < 0.0f) style.CurveTessellationTol = 0.10f;
+        ImGui::DragFloat("Curve Tessellation Tolerance", &style.CurveTessellationTol, 0.02f, 0.10f, FLT_MAX, "%.2f", 2.0f);
+        if (style.CurveTessellationTol < 0.10f) style.CurveTessellationTol = 0.10f;
         ImGui::DragFloat("Global Alpha", &style.Alpha, 0.005f, 0.20f, 1.0f, "%.2f"); // Not exposing zero here so user doesn't "lose" the UI (zero alpha clips all widgets). But application code could have a toggle to switch between zero and non-zero.
         ImGui::PopItemWidth();
         ImGui::TreePop();
@@ -2883,7 +2892,7 @@ struct ExampleAppConsole
         if (copy_to_clipboard)
             ImGui::LogFinish();
         if (ScrollToBottom)
-            ImGui::SetScrollHere(1.0f);
+            ImGui::SetScrollHereY(1.0f);
         ScrollToBottom = false;
         ImGui::PopStyleVar();
         ImGui::EndChild();
@@ -3125,7 +3134,7 @@ struct ExampleAppLog
         }
 
         if (ScrollToBottom)
-            ImGui::SetScrollHere(1.0f);
+            ImGui::SetScrollHereY(1.0f);
         ScrollToBottom = false;
         ImGui::EndChild();
         ImGui::End();

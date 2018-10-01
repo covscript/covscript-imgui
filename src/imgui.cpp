@@ -342,6 +342,7 @@ CODE
  When you are not sure about a old symbol or function name, try using the Search/Find function of your IDE to look for comments or references in all imgui files.
  You can read releases logs https://github.com/ocornut/imgui/releases for more details.
 
+ - 2018/09/28 (1.66) - renamed SetScrollHere() to SetScrollHereY(). Kept redirection function (will obsolete).
  - 2018/09/06 (1.65) - renamed stb_truetype.h to imstb_truetype.h, stb_textedit.h to imstb_textedit.h, and stb_rect_pack.h to imstb_rectpack.h. 
                        If you were conveniently using the imgui copy of those STB headers in your project you will have to update your include paths.
  - 2018/09/05 (1.65) - renamed io.OptCursorBlink/io.ConfigCursorBlink to io.ConfigInputTextCursorBlink. (#1427)
@@ -906,7 +907,7 @@ static ImVec2           CalcNextScrollFromScrollTargetAndClamp(ImGuiWindow* wind
 
 static void             AddDrawListToDrawData(ImVector<ImDrawList*>* out_list, ImDrawList* draw_list);
 static void             AddWindowToDrawData(ImVector<ImDrawList*>* out_list, ImGuiWindow* window);
-static void             AddWindowToSortedBuffer(ImVector<ImGuiWindow*>* out_sorted_windows, ImGuiWindow* window);
+static void             AddWindowToSortBuffer(ImVector<ImGuiWindow*>* out_sorted_windows, ImGuiWindow* window);
 
 static ImRect           GetViewportRect();
 
@@ -1992,12 +1993,12 @@ void ImGuiTextBuffer::appendf(const char* fmt, ...)
 
 static void SetCursorPosYAndSetupDummyPrevLine(float pos_y, float line_height)
 {
-    // Set cursor position and a few other things so that SetScrollHere() and Columns() can work when seeking cursor.
+    // Set cursor position and a few other things so that SetScrollHereY() and Columns() can work when seeking cursor.
     // FIXME: It is problematic that we have to do that here, because custom/equivalent end-user code would stumble on the same issue.
     // The clipper should probably have a 4th step to display the last item in a regular manner.
     ImGui::SetCursorPosY(pos_y);
     ImGuiWindow* window = ImGui::GetCurrentWindow();
-    window->DC.CursorPosPrevLine.y = window->DC.CursorPos.y - line_height;      // Setting those fields so that SetScrollHere() can properly function after the end of our clipper usage.
+    window->DC.CursorPosPrevLine.y = window->DC.CursorPos.y - line_height;      // Setting those fields so that SetScrollHereY() can properly function after the end of our clipper usage.
     window->DC.PrevLineSize.y = (line_height - GImGui->Style.ItemSpacing.y);    // If we end up needing more accurate data (to e.g. use SameLine) we may as well make the clipper have a fourth step to let user process and display the last item in their list.
     if (window->DC.ColumnsSet)
         window->DC.ColumnsSet->LineMinY = window->DC.CursorPos.y;           // Setting this so that cell Y position are set properly
@@ -3225,6 +3226,7 @@ void ImGui::NewFrame()
     g.NavIdTabCounter = INT_MAX;
 
     // Mark all windows as not visible
+    IM_ASSERT(g.WindowsFocusOrder.Size == g.Windows.Size);
     for (int i = 0; i != g.Windows.Size; i++)
     {
         ImGuiWindow* window = g.Windows[i];
@@ -3235,7 +3237,7 @@ void ImGui::NewFrame()
 
     // Closing the focused window restore focus to the first active root window in descending z-order
     if (g.NavWindow && !g.NavWindow->WasActive)
-        FocusFrontMostActiveWindowIgnoringOne(NULL);
+        FocusPreviousWindowIgnoringOne(NULL);
 
     // No window should be open at the beginning of the frame.
     // But in order to allow the user to call NewFrame() multiple times without calling Render(), we are doing an explicit clear.
@@ -3292,6 +3294,7 @@ void ImGui::Shutdown(ImGuiContext* context)
     for (int i = 0; i < g.Windows.Size; i++)
         IM_DELETE(g.Windows[i]);
     g.Windows.clear();
+    g.WindowsFocusOrder.clear();
     g.WindowsSortBuffer.clear();
     g.CurrentWindow = NULL;
     g.CurrentWindowStack.clear();
@@ -3340,7 +3343,7 @@ static int IMGUI_CDECL ChildWindowComparer(const void* lhs, const void* rhs)
     return (a->BeginOrderWithinParent - b->BeginOrderWithinParent);
 }
 
-static void AddWindowToSortedBuffer(ImVector<ImGuiWindow*>* out_sorted_windows, ImGuiWindow* window)
+static void AddWindowToSortBuffer(ImVector<ImGuiWindow*>* out_sorted_windows, ImGuiWindow* window)
 {
     out_sorted_windows->push_back(window);
     if (window->Active)
@@ -3352,7 +3355,7 @@ static void AddWindowToSortedBuffer(ImVector<ImGuiWindow*>* out_sorted_windows, 
         {
             ImGuiWindow* child = window->DC.ChildWindows[i];
             if (child->Active)
-                AddWindowToSortedBuffer(out_sorted_windows, child);
+                AddWindowToSortBuffer(out_sorted_windows, child);
         }
     }
 }
@@ -3550,7 +3553,7 @@ void ImGui::EndFrame()
         ImGuiWindow* window = g.Windows[i];
         if (window->Active && (window->Flags & ImGuiWindowFlags_ChildWindow))       // if a child is active its parent will add it
             continue;
-        AddWindowToSortedBuffer(&g.WindowsSortBuffer, window);
+        AddWindowToSortBuffer(&g.WindowsSortBuffer, window);
     }
 
     IM_ASSERT(g.Windows.Size == g.WindowsSortBuffer.Size);  // we done something wrong
@@ -4034,10 +4037,10 @@ static bool ImGui::BeginChildEx(const char* name, ImGuiID id, const ImVec2& size
         size.y = ImMax(content_avail.y + size.y, 4.0f);
     SetNextWindowSize(size);
 
-    // Name
+    // Build up name. If you need to append to a same child from multiple location in the ID stack, use BeginChild(ImGuiID id) with a stable value.
     char title[256];
     if (name)
-        ImFormatString(title, IM_ARRAYSIZE(title), "%s/%s", parent_window->Name, name);
+        ImFormatString(title, IM_ARRAYSIZE(title), "%s/%s_%08X", parent_window->Name, name, id);
     else
         ImFormatString(title, IM_ARRAYSIZE(title), "%s/%08X", parent_window->Name, id);
 
@@ -4204,8 +4207,9 @@ static ImGuiWindow* CreateNewWindow(const char* name, ImVec2 size, ImGuiWindowFl
         window->AutoFitOnlyGrows = (window->AutoFitFramesX > 0) || (window->AutoFitFramesY > 0);
     }
 
+    g.WindowsFocusOrder.push_back(window);
     if (flags & ImGuiWindowFlags_NoBringToFrontOnFocus)
-        g.Windows.insert(g.Windows.begin(), window); // Quite slow but rare and only once
+        g.Windows.push_front(window); // Quite slow but rare and only once
     else
         g.Windows.push_back(window);
     return window;
@@ -5125,7 +5129,21 @@ void ImGui::End()
     SetCurrentWindow(g.CurrentWindowStack.empty() ? NULL : g.CurrentWindowStack.back());
 }
 
-void ImGui::BringWindowToFront(ImGuiWindow* window)
+void ImGui::BringWindowToFocusFront(ImGuiWindow* window)
+{
+    ImGuiContext& g = *GImGui;
+    if (g.WindowsFocusOrder.back() == window)
+        return;
+    for (int i = g.WindowsFocusOrder.Size - 2; i >= 0; i--) // We can ignore the front most window
+        if (g.WindowsFocusOrder[i] == window)
+        {
+            memmove(&g.WindowsFocusOrder[i], &g.WindowsFocusOrder[i + 1], (size_t)(g.WindowsFocusOrder.Size - i - 1) * sizeof(ImGuiWindow*));
+            g.WindowsFocusOrder[g.WindowsFocusOrder.Size - 1] = window;
+            break;
+        }
+}
+
+void ImGui::BringWindowToDisplayFront(ImGuiWindow* window)
 {
     ImGuiContext& g = *GImGui;
     ImGuiWindow* current_front_window = g.Windows.back();
@@ -5134,13 +5152,13 @@ void ImGui::BringWindowToFront(ImGuiWindow* window)
     for (int i = g.Windows.Size - 2; i >= 0; i--) // We can ignore the front most window
         if (g.Windows[i] == window)
         {
-            g.Windows.erase(g.Windows.Data + i);
-            g.Windows.push_back(window);
+            memmove(&g.Windows[i], &g.Windows[i + 1], (size_t)(g.Windows.Size - i - 1) * sizeof(ImGuiWindow*));
+            g.Windows[g.Windows.Size - 1] = window;
             break;
         }
 }
 
-void ImGui::BringWindowToBack(ImGuiWindow* window)
+void ImGui::BringWindowToDisplayBack(ImGuiWindow* window)
 {
     ImGuiContext& g = *GImGui;
     if (g.Windows[0] == window)
@@ -5185,20 +5203,24 @@ void ImGui::FocusWindow(ImGuiWindow* window)
             ClearActiveID();
 
     // Bring to front
+    BringWindowToFocusFront(window);
     if (!(window->Flags & ImGuiWindowFlags_NoBringToFrontOnFocus))
-        BringWindowToFront(window);
+        BringWindowToDisplayFront(window);
 }
 
-void ImGui::FocusFrontMostActiveWindowIgnoringOne(ImGuiWindow* ignore_window)
+void ImGui::FocusPreviousWindowIgnoringOne(ImGuiWindow* ignore_window)
 {
     ImGuiContext& g = *GImGui;
-    for (int i = g.Windows.Size - 1; i >= 0; i--)
-        if (g.Windows[i] != ignore_window && g.Windows[i]->WasActive && !(g.Windows[i]->Flags & ImGuiWindowFlags_ChildWindow))
+    for (int i = g.WindowsFocusOrder.Size - 1; i >= 0; i--)
+    {
+        ImGuiWindow* window = g.WindowsFocusOrder[i];
+        if (window != ignore_window && window->WasActive && !(window->Flags & ImGuiWindowFlags_ChildWindow))
         {
-            ImGuiWindow* focus_window = NavRestoreLastChildNavWindow(g.Windows[i]);
+            ImGuiWindow* focus_window = NavRestoreLastChildNavWindow(window);
             FocusWindow(focus_window);
             return;
         }
+    }
 }
 
 void ImGui::PushItemWidth(float item_width)
@@ -5992,7 +6014,7 @@ void ImGui::SetScrollFromPosY(float pos_y, float center_y_ratio)
 }
 
 // center_y_ratio: 0.0f top of last item, 0.5f vertical center of last item, 1.0f bottom of last item.
-void ImGui::SetScrollHere(float center_y_ratio)
+void ImGui::SetScrollHereY(float center_y_ratio)
 {
     ImGuiWindow* window = GetCurrentWindow();
     float target_y = window->DC.CursorPosPrevLine.y - window->Pos.y; // Top of last item, in window space
@@ -6027,7 +6049,7 @@ void ImGui::SetItemDefaultFocus()
         g.NavInitResultRectRel = ImRect(g.NavWindow->DC.LastItemRect.Min - g.NavWindow->Pos, g.NavWindow->DC.LastItemRect.Max - g.NavWindow->Pos);
         NavUpdateAnyRequestFlag();
         if (!IsItemVisible())
-            SetScrollHere();
+            SetScrollHereY();
     }
 }
 
@@ -7436,11 +7458,11 @@ static float ImGui::NavUpdatePageUpPageDown(int allowed_dir_flags)
     return 0.0f;
 }
 
-static int FindWindowIndex(ImGuiWindow* window) // FIXME-OPT O(N)
+static int FindWindowFocusIndex(ImGuiWindow* window) // FIXME-OPT O(N)
 {
     ImGuiContext& g = *GImGui;
-    for (int i = g.Windows.Size-1; i >= 0; i--)
-        if (g.Windows[i] == window)
+    for (int i = g.WindowsFocusOrder.Size-1; i >= 0; i--)
+        if (g.WindowsFocusOrder[i] == window)
             return i;
     return -1;
 }
@@ -7448,9 +7470,9 @@ static int FindWindowIndex(ImGuiWindow* window) // FIXME-OPT O(N)
 static ImGuiWindow* FindWindowNavFocusable(int i_start, int i_stop, int dir) // FIXME-OPT O(N)
 {
     ImGuiContext& g = *GImGui;
-    for (int i = i_start; i >= 0 && i < g.Windows.Size && i != i_stop; i += dir)
-        if (ImGui::IsWindowNavFocusable(g.Windows[i]))
-            return g.Windows[i];
+    for (int i = i_start; i >= 0 && i < g.WindowsFocusOrder.Size && i != i_stop; i += dir)
+        if (ImGui::IsWindowNavFocusable(g.WindowsFocusOrder[i]))
+            return g.WindowsFocusOrder[i];
     return NULL;
 }
 
@@ -7461,10 +7483,10 @@ static void NavUpdateWindowingHighlightWindow(int focus_change_dir)
     if (g.NavWindowingTarget->Flags & ImGuiWindowFlags_Modal)
         return;
 
-    const int i_current = FindWindowIndex(g.NavWindowingTarget);
+    const int i_current = FindWindowFocusIndex(g.NavWindowingTarget);
     ImGuiWindow* window_target = FindWindowNavFocusable(i_current + focus_change_dir, -INT_MAX, focus_change_dir);
     if (!window_target)
-        window_target = FindWindowNavFocusable((focus_change_dir < 0) ? (g.Windows.Size - 1) : 0, i_current, focus_change_dir);
+        window_target = FindWindowNavFocusable((focus_change_dir < 0) ? (g.WindowsFocusOrder.Size - 1) : 0, i_current, focus_change_dir);
     if (window_target) // Don't reset windowing target if there's a single window in the list
         g.NavWindowingTarget = g.NavWindowingTargetAnim = window_target;
     g.NavWindowingToggleLayer = false;
@@ -7496,7 +7518,7 @@ static void ImGui::NavUpdateWindowing()
     bool start_windowing_with_gamepad = !g.NavWindowingTarget && IsNavInputPressed(ImGuiNavInput_Menu, ImGuiInputReadMode_Pressed);
     bool start_windowing_with_keyboard = !g.NavWindowingTarget && g.IO.KeyCtrl && IsKeyPressedMap(ImGuiKey_Tab) && (g.IO.ConfigFlags & ImGuiConfigFlags_NavEnableKeyboard);
     if (start_windowing_with_gamepad || start_windowing_with_keyboard)
-        if (ImGuiWindow* window = g.NavWindow ? g.NavWindow : FindWindowNavFocusable(g.Windows.Size - 1, -INT_MAX, -1))
+        if (ImGuiWindow* window = g.NavWindow ? g.NavWindow : FindWindowNavFocusable(g.WindowsFocusOrder.Size - 1, -INT_MAX, -1))
         {
             g.NavWindowingTarget = g.NavWindowingTargetAnim = window;
             g.NavWindowingTimer = g.NavWindowingHighlightAlpha = 0.0f;
@@ -7628,9 +7650,9 @@ void ImGui::NavUpdateWindowingList()
     SetNextWindowPos(g.IO.DisplaySize * 0.5f, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
     PushStyleVar(ImGuiStyleVar_WindowPadding, g.Style.WindowPadding * 2.0f);
     Begin("###NavWindowingList", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings);
-    for (int n = g.Windows.Size - 1; n >= 0; n--)
+    for (int n = g.WindowsFocusOrder.Size - 1; n >= 0; n--)
     {
-        ImGuiWindow* window = g.Windows[n];
+        ImGuiWindow* window = g.WindowsFocusOrder[n];
         if (!IsWindowNavFocusable(window))
             continue;
         const char* label = window->Name;
@@ -8451,7 +8473,7 @@ void ImGui::MarkIniSettingsDirty(ImGuiWindow* window)
             g.SettingsDirtyTimer = g.IO.IniSavingRate;
 }
 
-static ImGuiWindowSettings* CreateNewWindowSettings(const char* name)
+ImGuiWindowSettings* ImGui::CreateNewWindowSettings(const char* name)
 {
     ImGuiContext& g = *GImGui;
     g.SettingsWindows.push_back(ImGuiWindowSettings());
@@ -8589,7 +8611,7 @@ static void* SettingsHandlerWindow_ReadOpen(ImGuiContext*, ImGuiSettingsHandler*
 {
     ImGuiWindowSettings* settings = ImGui::FindWindowSettings(ImHash(name, 0));
     if (!settings)
-        settings = CreateNewWindowSettings(name);
+        settings = ImGui::CreateNewWindowSettings(name);
     return (void*)settings;
 }
 
@@ -8617,7 +8639,7 @@ static void SettingsHandlerWindow_WriteAll(ImGuiContext* imgui_ctx, ImGuiSetting
         ImGuiWindowSettings* settings = (window->SettingsIdx != -1) ? &g.SettingsWindows[window->SettingsIdx] : ImGui::FindWindowSettings(window->ID);
         if (!settings)
         {
-            settings = CreateNewWindowSettings(window->Name);
+            settings = ImGui::CreateNewWindowSettings(window->Name);
             window->SettingsIdx = g.SettingsWindows.index_from_pointer(settings);
         }
         IM_ASSERT(settings->ID == window->ID);
