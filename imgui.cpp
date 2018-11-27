@@ -20,7 +20,6 @@
 
 // Covariant Script Header
 #include <covscript/extension.hpp>
-#include <covscript/cni.hpp>
 
 // ImGUI Common Header
 #include <imgui.h>
@@ -32,6 +31,7 @@
 // Other Headers
 #include <cstring>
 #include <cstdio>
+#include <vector>
 
 #ifdef IMGUI_IMPL_GL2
 #include "./imgui_gl2.hpp"
@@ -151,27 +151,25 @@ namespace imgui_cs {
 // GLFW Instance
 static imgui_cs::glfw_instance glfw_instance;
 // CNI Wrapper
-static cs::extension imgui_ext;
-static cs::extension imgui_app_ext;
-static cs::extension imgui_img_ext;
-static cs::extension imgui_keys_ext;
-static cs::extension imgui_dirs_ext;
-static cs::extension imgui_flags_ext;
-static cs::extension_t imgui_app_ext_shared = cs::make_shared_namespace(imgui_app_ext);
-static cs::extension_t imgui_img_ext_shared = cs::make_shared_namespace(imgui_img_ext);
-static cs::extension_t imgui_keys_ext_shared = cs::make_shared_namespace(imgui_keys_ext);
-static cs::extension_t imgui_dirs_ext_shared = cs::make_shared_namespace(imgui_dirs_ext);
-static cs::extension_t imgui_flags_ext_shared = cs::make_shared_namespace(imgui_flags_ext);
+static cs::namespace_t imgui_ext=cs::make_shared_namespace<cs::name_space>();
+static cs::namespace_t imgui_app_ext=cs::make_shared_namespace<cs::name_space>();
+static cs::namespace_t imgui_img_ext=cs::make_shared_namespace<cs::name_space>();
+static cs::namespace_t imgui_keys_ext=cs::make_shared_namespace<cs::name_space>();
+static cs::namespace_t imgui_dirs_ext=cs::make_shared_namespace<cs::name_space>();
+static cs::namespace_t imgui_flags_ext=cs::make_shared_namespace<cs::name_space>();
 
 class cni_register final {
 public:
+	static std::vector<cni_register*> register_list;
+	std::string name;
+	cs::var func;
 	template<typename _fT>
-	cni_register(const char *name, _fT &&func, bool is_const)
-	{
-		using namespace cs;
-		imgui_ext.add_var(name, var::make_protect<callable>(cni(func), is_const));
+	cni_register(const char *str, _fT &&func, bool is_const):name(str), func(cs::make_cni(func, is_const)){
+		register_list.push_back(this);
 	}
 };
+
+std::vector<cni_register*> cni_register::register_list;
 
 #define CNI_NAME_MIXER(PREFIX, NAME) static cni_register PREFIX##NAME
 #define CNI_REGISTER(NAME, ARGS) CNI_NAME_MIXER(_cni_register_, NAME) \
@@ -1159,77 +1157,80 @@ namespace imgui_cs_ext {
 
 	CNI_NORMAL(add_image)
 
-	void init()
+	void init(name_space *imgui_ext)
 	{
+		// Functions
+		for(auto& reg:cni_register::register_list)
+			imgui_ext->add_var(reg->name, reg->func);
 		// Namespaces
-		imgui_ext.add_var("applicaion", var::make_protect<extension_t>(imgui_app_ext_shared));
-		imgui_ext.add_var("bmp_image", var::make_protect<extension_t>(imgui_img_ext_shared));
-		imgui_ext.add_var("keys", var::make_protect<extension_t>(imgui_keys_ext_shared));
-		imgui_ext.add_var("dirs", var::make_protect<extension_t>(imgui_dirs_ext_shared));
-		imgui_ext.add_var("flags", var::make_protect<extension_t>(imgui_flags_ext_shared));
+		(*imgui_ext)
+		.add_var("applicaion", make_namespace(imgui_app_ext))
+		.add_var("bmp_image", make_namespace(imgui_img_ext))
+		.add_var("keys", make_namespace(imgui_keys_ext))
+		.add_var("dirs", make_namespace(imgui_dirs_ext))
+		.add_var("flags", make_namespace(imgui_flags_ext));
 		// Application
-		imgui_app_ext.add_var("get_window_width",
-		                      var::make_protect<callable>(cni(applicaion_cs_ext::get_window_width)));
-		imgui_app_ext.add_var("get_window_height",
-		                      var::make_protect<callable>(cni(applicaion_cs_ext::get_window_height)));
-		imgui_app_ext.add_var("set_window_size", var::make_protect<callable>(cni(applicaion_cs_ext::set_window_size)));
-		imgui_app_ext.add_var("set_window_title",
-		                      var::make_protect<callable>(cni(applicaion_cs_ext::set_window_title)));
-		imgui_app_ext.add_var("set_bg_color", var::make_protect<callable>(cni(applicaion_cs_ext::set_bg_color)));
-		imgui_app_ext.add_var("is_closed", var::make_protect<callable>(cni(applicaion_cs_ext::is_closed)));
-		imgui_app_ext.add_var("prepare", var::make_protect<callable>(cni(applicaion_cs_ext::prepare)));
-		imgui_app_ext.add_var("render", var::make_protect<callable>(cni(applicaion_cs_ext::render)));
+		(*imgui_app_ext)
+		.add_var("get_window_width", make_cni(applicaion_cs_ext::get_window_width))
+		.add_var("get_window_height", make_cni(applicaion_cs_ext::get_window_height))
+		.add_var("set_window_size", make_cni(applicaion_cs_ext::set_window_size))
+		.add_var("set_window_title", make_cni(applicaion_cs_ext::set_window_title))
+		.add_var("set_bg_color", make_cni(applicaion_cs_ext::set_bg_color))
+		.add_var("is_closed", make_cni(applicaion_cs_ext::is_closed))
+		.add_var("prepare", make_cni(applicaion_cs_ext::prepare))
+		.add_var("render", make_cni(applicaion_cs_ext::render));
 		// Image
-		imgui_img_ext.add_var("get_width", var::make_protect<callable>(cni(image_cs_ext::get_width)));
-		imgui_img_ext.add_var("get_height", var::make_protect<callable>(cni(image_cs_ext::get_height)));
+		(*imgui_img_ext)
+		.add_var("get_width", make_cni(image_cs_ext::get_width))
+		.add_var("get_height", make_cni(image_cs_ext::get_height));
 		// Keys
-		imgui_keys_ext.add_var("tab", var::make_constant<ImGuiKey>(ImGuiKey_Tab));
-		imgui_keys_ext.add_var("left", var::make_constant<ImGuiKey>(ImGuiKey_LeftArrow));
-		imgui_keys_ext.add_var("right", var::make_constant<ImGuiKey>(ImGuiKey_RightArrow));
-		imgui_keys_ext.add_var("up", var::make_constant<ImGuiKey>(ImGuiKey_UpArrow));
-		imgui_keys_ext.add_var("down", var::make_constant<ImGuiKey>(ImGuiKey_DownArrow));
-		imgui_keys_ext.add_var("page_up", var::make_constant<ImGuiKey>(ImGuiKey_PageUp));
-		imgui_keys_ext.add_var("page_down", var::make_constant<ImGuiKey>(ImGuiKey_PageDown));
-		imgui_keys_ext.add_var("home", var::make_constant<ImGuiKey>(ImGuiKey_Home));
-		imgui_keys_ext.add_var("end_key", var::make_constant<ImGuiKey>(ImGuiKey_End));
-		imgui_keys_ext.add_var("insert", var::make_constant<ImGuiKey>(ImGuiKey_Insert));
-		imgui_keys_ext.add_var("delete", var::make_constant<ImGuiKey>(ImGuiKey_Delete));
-		imgui_keys_ext.add_var("backspace", var::make_constant<ImGuiKey>(ImGuiKey_Backspace));
-		imgui_keys_ext.add_var("space", var::make_constant<ImGuiKey>(ImGuiKey_Space));
-		imgui_keys_ext.add_var("enter", var::make_constant<ImGuiKey>(ImGuiKey_Enter));
-		imgui_keys_ext.add_var("escape", var::make_constant<ImGuiKey>(ImGuiKey_Escape));
-		imgui_keys_ext.add_var("ctrl_a", var::make_constant<ImGuiKey>(ImGuiKey_A));
-		imgui_keys_ext.add_var("ctrl_c", var::make_constant<ImGuiKey>(ImGuiKey_C));
-		imgui_keys_ext.add_var("ctrl_v", var::make_constant<ImGuiKey>(ImGuiKey_V));
-		imgui_keys_ext.add_var("ctrl_x", var::make_constant<ImGuiKey>(ImGuiKey_X));
-		imgui_keys_ext.add_var("ctrl_y", var::make_constant<ImGuiKey>(ImGuiKey_Y));
-		imgui_keys_ext.add_var("ctrl_z", var::make_constant<ImGuiKey>(ImGuiKey_Z));
+		(*imgui_keys_ext)
+		.add_var("tab", var::make_constant<ImGuiKey>(ImGuiKey_Tab))
+		.add_var("left", var::make_constant<ImGuiKey>(ImGuiKey_LeftArrow))
+		.add_var("right", var::make_constant<ImGuiKey>(ImGuiKey_RightArrow))
+		.add_var("up", var::make_constant<ImGuiKey>(ImGuiKey_UpArrow))
+		.add_var("down", var::make_constant<ImGuiKey>(ImGuiKey_DownArrow))
+		.add_var("page_up", var::make_constant<ImGuiKey>(ImGuiKey_PageUp))
+		.add_var("page_down", var::make_constant<ImGuiKey>(ImGuiKey_PageDown))
+		.add_var("home", var::make_constant<ImGuiKey>(ImGuiKey_Home))
+		.add_var("end_key", var::make_constant<ImGuiKey>(ImGuiKey_End))
+		.add_var("insert", var::make_constant<ImGuiKey>(ImGuiKey_Insert))
+		.add_var("delete", var::make_constant<ImGuiKey>(ImGuiKey_Delete))
+		.add_var("backspace", var::make_constant<ImGuiKey>(ImGuiKey_Backspace))
+		.add_var("space", var::make_constant<ImGuiKey>(ImGuiKey_Space))
+		.add_var("enter", var::make_constant<ImGuiKey>(ImGuiKey_Enter))
+		.add_var("escape", var::make_constant<ImGuiKey>(ImGuiKey_Escape))
+		.add_var("ctrl_a", var::make_constant<ImGuiKey>(ImGuiKey_A))
+		.add_var("ctrl_c", var::make_constant<ImGuiKey>(ImGuiKey_C))
+		.add_var("ctrl_v", var::make_constant<ImGuiKey>(ImGuiKey_V))
+		.add_var("ctrl_x", var::make_constant<ImGuiKey>(ImGuiKey_X))
+		.add_var("ctrl_y", var::make_constant<ImGuiKey>(ImGuiKey_Y))
+		.add_var("ctrl_z", var::make_constant<ImGuiKey>(ImGuiKey_Z));
 		// Dirs
-		imgui_dirs_ext.add_var("left", var::make_constant<ImGuiDir>(ImGuiDir_Left));
-		imgui_dirs_ext.add_var("right", var::make_constant<ImGuiDir>(ImGuiDir_Right));
-		imgui_dirs_ext.add_var("up", var::make_constant<ImGuiDir>(ImGuiDir_Up));
-		imgui_dirs_ext.add_var("down", var::make_constant<ImGuiDir>(ImGuiDir_Down));
+		(*imgui_dirs_ext)
+		.add_var("left", var::make_constant<ImGuiDir>(ImGuiDir_Left))
+		.add_var("right", var::make_constant<ImGuiDir>(ImGuiDir_Right))
+		.add_var("up", var::make_constant<ImGuiDir>(ImGuiDir_Up))
+		.add_var("down", var::make_constant<ImGuiDir>(ImGuiDir_Down));
 		// Flags
-		imgui_flags_ext.add_var("no_title_bar", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_NoTitleBar));
-		imgui_flags_ext.add_var("no_resize", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_NoResize));
-		imgui_flags_ext.add_var("no_move", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_NoMove));
-		imgui_flags_ext.add_var("no_scroll_bar", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_NoScrollbar));
-		imgui_flags_ext.add_var("no_collapse", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_NoCollapse));
-		imgui_flags_ext.add_var("always_auto_resize",
-		                        var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_AlwaysAutoResize));
-		imgui_flags_ext.add_var("no_saved_settings",
-		                        var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_NoSavedSettings));
-		imgui_flags_ext.add_var("menu_bar", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_MenuBar));
-		imgui_flags_ext.add_var("horizontal_scroll_bar",
-		                        var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_HorizontalScrollbar));
+		(*imgui_flags_ext)
+		.add_var("no_title_bar", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_NoTitleBar))
+		.add_var("no_resize", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_NoResize))
+		.add_var("no_move", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_NoMove))
+		.add_var("no_scroll_bar", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_NoScrollbar))
+		.add_var("no_collapse", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_NoCollapse))
+		.add_var("always_auto_resize", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_AlwaysAutoResize))
+		.add_var("no_saved_settings", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_NoSavedSettings))
+		.add_var("menu_bar", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_MenuBar))
+		.add_var("horizontal_scroll_bar", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_HorizontalScrollbar));
 	}
 }
 
 namespace cs_impl {
 	template<>
-	cs::extension_t &get_ext<imgui_cs_ext::application_t>()
+	cs::namespace_t &get_ext<imgui_cs_ext::application_t>()
 	{
-		return imgui_app_ext_shared;
+		return imgui_app_ext;
 	}
 
 	template<>
@@ -1239,9 +1240,9 @@ namespace cs_impl {
 	}
 
 	template<>
-	cs::extension_t &get_ext<imgui_cs_ext::image_t>()
+	cs::namespace_t &get_ext<imgui_cs_ext::image_t>()
 	{
-		return imgui_img_ext_shared;
+		return imgui_img_ext;
 	}
 
 	template<>
@@ -1251,8 +1252,7 @@ namespace cs_impl {
 	}
 }
 
-cs::extension *cs_extension()
+void cs_extension_main(cs::name_space* ns)
 {
-	imgui_cs_ext::init();
-	return &imgui_ext;
+	imgui_cs_ext::init(ns);
 }

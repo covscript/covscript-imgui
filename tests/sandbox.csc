@@ -7,11 +7,11 @@ style_color_light()
 var window_opened=true
 var col=vec4(0.5,0.5,0.5,1)
 var radius=10
-const var gravity=10
-const var air_drop=1
-const var delta_time=0.1
-const var mass=0.5
-const var size=0.01
+constant gravity=10
+constant air_drop=1
+constant delta_time=0.1
+constant mass=0.5
+constant size=0.01
 var speed_x=50
 var speed_y=0
 var posit_x=radius
