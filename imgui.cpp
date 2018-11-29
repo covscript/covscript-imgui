@@ -19,7 +19,7 @@
 */
 
 // Covariant Script Header
-#include <covscript/extension.hpp>
+#include <covscript/dll.hpp>
 
 // ImGUI Common Header
 #include <imgui.h>
