@@ -40,10 +40,10 @@ case "$(uname -s)" in
     * )         GL_LIBS="-lGL" ;;
 esac
 
-COMMON_FLAGS="-I ../include -fPIC -O3"
+COMMON_FLAGS="-I$CS_DEV_PATH/include -I../include -fPIC -O3"
 DEFAULT_CXXFLAGS="-std=c++11 -shared -s $COMMON_FLAGS $GLFW_CFLAGS"
 DEFAULT_CFLAGS="$COMMON_FLAGS"
-DEFAULT_LDFLAGS="-ldl $GLFW_LDFLAGS $GL_LIBS"
+DEFAULT_LDFLAGS="-L$CS_DEV_PATH/lib -lcovscript -ldl $GLFW_LDFLAGS $GL_LIBS"
 DEFAULT_CXX=g++
 DEFAULT_CC=gcc
 
