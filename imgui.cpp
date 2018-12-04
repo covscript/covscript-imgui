@@ -18,11 +18,11 @@
 * Github: https://github.com/mikecovlee
 */
 
-// Covariant Script Header
-#include <covscript/dll.hpp>
+#include "imgui.hpp"
 
 // ImGUI Common Header
 #include <imgui.h>
+#include <imgui_internal.h>
 
 // GL3W/GLFW3
 #include <GL/gl3w.h>
@@ -326,13 +326,39 @@ namespace imgui_cs_ext {
 
 	CNI_NORMAL(add_font)
 
+	void add_font_chinese(const string &str, number size)
+	{
+		ImGui::GetIO().FontDefault = ImGui::GetIO().Fonts->AddFontFromFileTTF(str.c_str(), size, nullptr, ImGui::GetIO().Fonts->GetGlyphRangesChineseFull());
+	}
+
+	CNI_NORMAL(add_font_chinese)
+
 	void add_font_default(number size)
 	{
-		ImGui::GetIO().FontDefault = ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(
-		                                 imgui_cs::get_droidsans_ttf_data(), size);
+		ImFontConfig font_cfg = ImFontConfig();
+        ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "DefaultFont, %.0fpx", (float)size);
+		ImGui::GetIO().FontDefault = ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(imgui_cs::get_droidsans_ttf_data(), size, &font_cfg);
 	}
 
 	CNI_NORMAL(add_font_default)
+
+	void add_font_extend(const imgui_cs::font& f, number size)
+	{
+		ImFontConfig font_cfg = ImFontConfig();
+        ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "%s, %.0fpx", f.name, (float)size);
+		ImGui::GetIO().FontDefault = ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(f.data, size, &font_cfg);
+	}
+
+	CNI_NORMAL(add_font_extend)
+
+	void add_font_extend_cn(const imgui_cs::font& f, number size)
+	{
+		ImFontConfig font_cfg = ImFontConfig();
+        ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "%s, %.0fpx", f.name, (float)size);
+		ImGui::GetIO().FontDefault = ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(f.data, size, &font_cfg, ImGui::GetIO().Fonts->GetGlyphRangesChineseFull());
+	}
+
+	CNI_NORMAL(add_font_extend_cn)
 
 	void set_font_scale(number scale)
 	{
@@ -446,6 +472,48 @@ namespace imgui_cs_ext {
 	}
 
 	CNI_NORMAL(show_demo_window)
+
+	void show_about_window(bool &open)
+	{
+		ImGui::ShowAboutWindow(&open);
+	}
+
+	CNI_NORMAL(show_about_window)
+
+	void show_metrics_window(bool &open)
+	{
+		ImGui::ShowMetricsWindow(&open);
+	}
+
+	CNI_NORMAL(show_metrics_window)
+
+	void show_style_editor()
+	{
+		ImGui::ShowStyleEditor();
+	}
+
+	CNI_NORMAL(show_style_editor)
+
+	bool show_style_selector(const string &label)
+	{
+		return ImGui::ShowStyleSelector(label.c_str());
+	}
+
+	CNI_NORMAL(show_style_selector)
+
+	void show_font_selector(const string &label)
+	{
+		ImGui::ShowFontSelector(label.c_str());
+	}
+
+	CNI_NORMAL(show_font_selector)
+
+	void show_user_guide()
+	{
+		ImGui::ShowUserGuide();
+	}
+
+	CNI_NORMAL(show_user_guide)
 
 	void begin_window(const string &str, bool &open, const array &flags_arr)
 	{

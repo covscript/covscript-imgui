@@ -40,10 +40,12 @@ case "$(uname -s)" in
     * )         GL_LIBS="-lGL" ;;
 esac
 
+COVSCRIPT_LDFLAGS="-L$CS_DEV_PATH/lib -lcovscript"
+
 COMMON_FLAGS="-I$CS_DEV_PATH/include -I../include -fPIC -O3"
 DEFAULT_CXXFLAGS="-std=c++11 -shared -s $COMMON_FLAGS $GLFW_CFLAGS"
 DEFAULT_CFLAGS="$COMMON_FLAGS"
-DEFAULT_LDFLAGS="-L$CS_DEV_PATH/lib -lcovscript $GLFW_LDFLAGS $GL_LIBS"
+DEFAULT_LDFLAGS="$COVSCRIPT_LDFLAGS $GLFW_LDFLAGS $GL_LIBS"
 DEFAULT_CXX=g++
 DEFAULT_CC=gcc
 
@@ -74,6 +76,7 @@ do
 $CXX $CXXFLAGS -c $file -o $file.o &
 done
 wait
+$CXX $CXXFLAGS ../imgui_font.cpp $COVSCRIPT_LDFLAGS -o ./imports/imgui_font.cse &
 $CXX $CXXFLAGS ../src/*.o ../imgui.cpp ../impl/imgui_impl_glfw.cpp ../impl/imgui_impl_opengl3.cpp $LDFLAGS -o ./imports/imgui.cse &
 $CXX $CXXFLAGS -DIMGUI_IMPL_GL2 ../src/*.o ../imgui.cpp ../impl/imgui_impl_glfw.cpp ../impl/imgui_impl_opengl2.cpp $LDFLAGS -o ./imports/imgui_gl2.cse &
 wait
