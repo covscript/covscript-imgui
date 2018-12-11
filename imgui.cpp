@@ -321,14 +321,14 @@ namespace imgui_cs_ext {
 // Styles
 	void add_font(const string &str, number size)
 	{
-		ImGui::GetIO().Fonts->AddFontFromFileTTF(str.c_str(), size);
+		ImGui::GetIO().FontDefault = ImGui::GetIO().Fonts->AddFontFromFileTTF(str.c_str(), size);
 	}
 
 	CNI_NORMAL(add_font)
 
 	void add_font_chinese(const string &str, number size)
 	{
-		ImGui::GetIO().Fonts->AddFontFromFileTTF(str.c_str(), size, nullptr, ImGui::GetIO().Fonts->GetGlyphRangesChineseFull());
+		ImGui::GetIO().FontDefault = ImGui::GetIO().Fonts->AddFontFromFileTTF(str.c_str(), size, nullptr, ImGui::GetIO().Fonts->GetGlyphRangesChineseFull());
 	}
 
 	CNI_NORMAL(add_font_chinese)
@@ -337,7 +337,7 @@ namespace imgui_cs_ext {
 	{
 		ImFontConfig font_cfg = ImFontConfig();
         ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "DefaultFont, %.0fpx", (float)size);
-		ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(imgui_cs::get_droidsans_ttf_data(), size, &font_cfg);
+		ImGui::GetIO().FontDefault = ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(imgui_cs::get_droidsans_ttf_data(), size, &font_cfg);
 	}
 
 	CNI_NORMAL(add_font_default)
@@ -346,7 +346,7 @@ namespace imgui_cs_ext {
 	{
 		ImFontConfig font_cfg = ImFontConfig();
         ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "%s, %.0fpx", f.name, (float)size);
-		ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(f.data, size, &font_cfg);
+		ImGui::GetIO().FontDefault = ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(f.data, size, &font_cfg);
 	}
 
 	CNI_NORMAL(add_font_extend)
@@ -355,7 +355,7 @@ namespace imgui_cs_ext {
 	{
 		ImFontConfig font_cfg = ImFontConfig();
         ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "%s, %.0fpx", f.name, (float)size);
-		ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(f.data, size, &font_cfg, ImGui::GetIO().Fonts->GetGlyphRangesChineseFull());
+		ImGui::GetIO().FontDefault = ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(f.data, size, &font_cfg, ImGui::GetIO().Fonts->GetGlyphRangesChineseFull());
 	}
 
 	CNI_NORMAL(add_font_extend_cn)
