@@ -163,6 +163,7 @@ namespace imgui_cs {
 		{
 			ImGui::Render();
 			int display_w, display_h;
+			glfwMakeContextCurrent(window);
 			glfwGetFramebufferSize(window, &display_w, &display_h);
 			glViewport(0, 0, display_w, display_h);
 			glClearColor(bg_color.x, bg_color.y, bg_color.z, bg_color.w);
