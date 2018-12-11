@@ -37,15 +37,15 @@ namespace imgui_cs {
 			if (!glfwInit())
 				throw cs::lang_error("Init OpenGL Error.");
 #if __APPLE__
-    // GL 3.2
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+			// GL 3.2
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+			glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #else
-    // GL 3.0
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+			// GL 3.0
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 #endif
 		}
 
@@ -66,11 +66,11 @@ namespace imgui_cs {
 		void init()
 		{
 #if __APPLE__
-    // GLSL 150
-    const char* glsl_version = "#version 150";
+			// GLSL 150
+			const char* glsl_version = "#version 150";
 #else
-    // GLSL 130
-    const char* glsl_version = "#version 130";
+			// GLSL 130
+			const char* glsl_version = "#version 130";
 #endif
 			glfwMakeContextCurrent(window);
 			glfwSwapInterval(1);
@@ -80,7 +80,7 @@ namespace imgui_cs {
 			ImGui_ImplGlfw_InitForOpenGL(window, true);
 			ImGui_ImplOpenGL3_Init(glsl_version);
 			ImFontConfig font_cfg = ImFontConfig();
-        	ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "DefaultFont, 14px");
+			ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "DefaultFont, 14px");
 			ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(get_droidsans_ttf_data(), 14, &font_cfg);
 		}
 
