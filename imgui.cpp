@@ -165,7 +165,8 @@ public:
 	std::string name;
 	cs::var func;
 	template<typename _fT>
-	cni_register(const char *str, _fT &&func, bool is_const):name(str), func(cs::make_cni(func, is_const)){
+	cni_register(const char *str, _fT &&func, bool is_const):name(str), func(cs::make_cni(func, is_const))
+	{
 		register_list.push_back(this);
 	}
 };
@@ -330,7 +331,7 @@ namespace imgui_cs_ext {
 	void add_font_default(number size)
 	{
 		ImFontConfig font_cfg = ImFontConfig();
-        ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "DefaultFont, %.0fpx", (float)size);
+		ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "DefaultFont, %.0fpx", (float)size);
 		ImGui::GetIO().FontDefault = ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(imgui_cs::get_droidsans_ttf_data(), size, &font_cfg);
 	}
 
