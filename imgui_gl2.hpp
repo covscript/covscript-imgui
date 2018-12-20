@@ -61,7 +61,9 @@ namespace imgui_cs {
 			ImGui::CreateContext();
 			ImGui_ImplGlfw_InitForOpenGL(window, true);
 			ImGui_ImplOpenGL2_Init();
-			ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(get_droidsans_ttf_data(), 14);
+			ImFontConfig font_cfg = ImFontConfig();
+        	ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "DefaultFont, 14px");
+			ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(get_droidsans_ttf_data(), 14, &font_cfg);
 		}
 
 	public:
