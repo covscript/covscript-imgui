@@ -33,6 +33,7 @@
 #include <cstring>
 #include <cstdio>
 #include <vector>
+#include <memory>
 
 #ifdef IMGUI_IMPL_GL2
 #include "./imgui_gl2.hpp"
@@ -150,14 +151,7 @@ namespace imgui_cs {
 }
 
 // GLFW Instance
-static imgui_cs::glfw_instance glfw_instance;
-// CNI Wrapper
-static cs::namespace_t imgui_ext=cs::make_shared_namespace<cs::name_space>();
-static cs::namespace_t imgui_app_ext=cs::make_shared_namespace<cs::name_space>();
-static cs::namespace_t imgui_img_ext=cs::make_shared_namespace<cs::name_space>();
-static cs::namespace_t imgui_keys_ext=cs::make_shared_namespace<cs::name_space>();
-static cs::namespace_t imgui_dirs_ext=cs::make_shared_namespace<cs::name_space>();
-static cs::namespace_t imgui_flags_ext=cs::make_shared_namespace<cs::name_space>();
+static std::unique_ptr<imgui_cs::glfw_instance> glfw_instance;
 
 class cni_register final {
 public:
@@ -948,7 +942,46 @@ namespace imgui_cs_ext {
 		ImGui::CloseCurrentPopup();
 	}
 
-	CNI_NORMAL(close_current_popup);
+	CNI_NORMAL(close_current_popup)
+
+// Tab Bars, Tabs
+	bool begin_tab_bar(const string &str)
+	{
+		return ImGui::BeginTabBar(str.c_str());
+	}
+
+	CNI_NORMAL(begin_tab_bar)
+
+	void end_tab_bar()
+	{
+		ImGui::EndTabBar();
+	}
+
+	CNI_NORMAL(end_tab_bar)
+
+	bool begin_tab_item(const string &str, bool &open, const array &flags_arr)
+	{
+		ImGuiTabItemFlags flags = 0;
+		for (auto &it : flags_arr)
+			flags |= it.const_val<ImGuiTabItemFlags>();
+		return ImGui::BeginTabItem(str.c_str(), &open, flags);
+	}
+
+	CNI_NORMAL(begin_tab_item)
+
+	void end_tab_item()
+	{
+		ImGui::EndTabItem();
+	}
+
+	CNI_NORMAL(end_tab_item)
+
+	void set_tab_item_closed(const string &str)
+	{
+		ImGui::SetTabItemClosed(str.c_str());
+	}
+
+	CNI_NORMAL(set_tab_item_closed)
 
 // Columns
 	void columns(number count, const string &id, bool border)
@@ -1204,6 +1237,12 @@ namespace imgui_cs_ext {
 
 	void init(name_space *imgui_ext)
 	{
+		// CNI Wrapper
+		cs::namespace_t imgui_app_ext=cs::make_shared_namespace<cs::name_space>();
+		cs::namespace_t imgui_img_ext=cs::make_shared_namespace<cs::name_space>();
+		cs::namespace_t imgui_keys_ext=cs::make_shared_namespace<cs::name_space>();
+		cs::namespace_t imgui_dirs_ext=cs::make_shared_namespace<cs::name_space>();
+		cs::namespace_t imgui_flags_ext=cs::make_shared_namespace<cs::name_space>();
 		// Functions
 		for(auto& reg:cni_register::register_list)
 			imgui_ext->add_var(reg->name, reg->func);
@@ -1267,7 +1306,9 @@ namespace imgui_cs_ext {
 		.add_var("always_auto_resize", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_AlwaysAutoResize))
 		.add_var("no_saved_settings", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_NoSavedSettings))
 		.add_var("menu_bar", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_MenuBar))
-		.add_var("horizontal_scroll_bar", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_HorizontalScrollbar));
+		.add_var("horizontal_scroll_bar", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_HorizontalScrollbar))
+		.add_var("unsaved_document", var::make_constant<ImGuiTabItemFlags>(ImGuiTabItemFlags_UnsavedDocument))
+		.add_var("set_selected", var::make_constant<ImGuiTabItemFlags>(ImGuiTabItemFlags_SetSelected));
 	}
 }
 
@@ -1299,5 +1340,6 @@ namespace cs_impl {
 
 void cs_extension_main(cs::name_space* ns)
 {
+	glfw_instance=std::make_unique<imgui_cs::glfw_instance>();
 	imgui_cs_ext::init(ns);
 }
