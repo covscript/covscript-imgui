@@ -165,6 +165,10 @@ public:
 	}
 };
 
+// CNI Wrapper
+static cs::namespace_t imgui_app_ext=cs::make_shared_namespace<cs::name_space>();
+static cs::namespace_t imgui_img_ext=cs::make_shared_namespace<cs::name_space>();
+
 std::vector<cni_register*> cni_register::register_list;
 
 #define CNI_NAME_MIXER(PREFIX, NAME) static cni_register PREFIX##NAME
@@ -1238,8 +1242,6 @@ namespace imgui_cs_ext {
 	void init(name_space *imgui_ext)
 	{
 		// CNI Wrapper
-		cs::namespace_t imgui_app_ext=cs::make_shared_namespace<cs::name_space>();
-		cs::namespace_t imgui_img_ext=cs::make_shared_namespace<cs::name_space>();
 		cs::namespace_t imgui_keys_ext=cs::make_shared_namespace<cs::name_space>();
 		cs::namespace_t imgui_dirs_ext=cs::make_shared_namespace<cs::name_space>();
 		cs::namespace_t imgui_flags_ext=cs::make_shared_namespace<cs::name_space>();
@@ -1340,6 +1342,6 @@ namespace cs_impl {
 
 void cs_extension_main(cs::name_space* ns)
 {
-	glfw_instance=std::make_unique<imgui_cs::glfw_instance>();
+	glfw_instance.reset(new imgui_cs::glfw_instance);
 	imgui_cs_ext::init(ns);
 }
