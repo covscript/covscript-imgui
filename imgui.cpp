@@ -1,11 +1,12 @@
 /*
 * Covariant Script ImGUI Extension
 *
-* Licensed under the Apache License, Version 2.0 (the "License");
+* Licensed under the Covariant Innovation General Public License,
+* Version 1.0 (the "License");
 * you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 *
-* http://www.apache.org/licenses/LICENSE-2.0
+* https://covariant.cn/licenses/LICENSE-1.0
 *
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
@@ -406,6 +407,20 @@ namespace imgui_cs_ext {
 
 	CNI_NORMAL(set_window_size)
 
+	void set_next_window_collapsed(bool collapsed)
+	{
+		ImGui::SetNextWindowCollapsed(collapsed);
+	}
+
+	CNI_NORMAL(set_next_window_collapsed)
+
+	void set_window_collapsed(bool collapsed)
+	{
+		ImGui::SetWindowCollapsed(collapsed);
+	}
+
+	CNI_NORMAL(set_window_collapsed)
+
 	void set_next_window_focus()
 	{
 		ImGui::SetNextWindowFocus();
@@ -756,6 +771,16 @@ namespace imgui_cs_ext {
 
 	CNI_NORMAL(input_text)
 
+	void input_text_hint(const string &str, const string &hint, string &text, number buff_size)
+	{
+		imgui_cs::buffer<> buff(buff_size);
+		std::strcpy(buff.get(), text.c_str());
+		ImGui::InputTextWithHint(str.c_str(), hint.c_str(), buff.get(), buff_size);
+		text = buff.get();
+	}
+
+	CNI_NORMAL(input_text_hint)
+
 	void input_text_multiline(const string &str, string &text, number buff_size)
 	{
 		imgui_cs::buffer<> buff(buff_size);
@@ -1067,6 +1092,55 @@ namespace imgui_cs_ext {
 
 	CNI_NORMAL(is_item_hovered)
 
+	bool is_item_active()
+	{
+		return ImGui::IsItemActive();
+	}
+
+	CNI_NORMAL(is_item_active)
+
+	bool is_item_focused()
+	{
+		return ImGui::IsItemFocused();
+	}
+
+	CNI_NORMAL(is_item_focused)
+
+	bool is_item_clicked(number button)
+	{
+		return ImGui::IsItemClicked(button);
+	}
+
+	CNI_NORMAL(is_item_clicked)
+
+	bool is_item_visible()
+	{
+		return ImGui::IsItemVisible();
+	}
+
+	CNI_NORMAL(is_item_visible)
+
+	bool is_any_item_hovered()
+	{
+		return ImGui::IsAnyItemHovered();
+	}
+
+	CNI_NORMAL(is_any_item_hovered)
+
+	bool is_any_item_active()
+	{
+		return ImGui::IsAnyItemActive();
+	}
+
+	CNI_NORMAL(is_any_item_active)
+
+	bool is_any_item_focused()
+	{
+		return ImGui::IsAnyItemFocused();
+	}
+
+	CNI_NORMAL(is_any_item_focused)
+
 // Inputs
 	number get_key_index(ImGuiKey key)
 	{
@@ -1096,6 +1170,20 @@ namespace imgui_cs_ext {
 
 	CNI_NORMAL(is_key_released)
 
+	bool is_mouse_down(number button)
+	{
+		return ImGui::IsMouseDown(button);
+	}
+
+	CNI_NORMAL(is_mouse_down)
+
+	bool is_any_mouse_down()
+	{
+		return ImGui::IsAnyMouseDown();
+	}
+	
+	CNI_NORMAL(is_any_mouse_down)
+
 	bool is_mouse_clicked(number button)
 	{
 		return ImGui::IsMouseClicked(button);
@@ -1109,6 +1197,13 @@ namespace imgui_cs_ext {
 	}
 
 	CNI_NORMAL(is_mouse_double_clicked)
+
+	bool is_mouse_released(number button)
+	{
+		return ImGui::IsMouseReleased(button);
+	}
+
+	CNI_NORMAL(is_mouse_released)
 
 	bool is_mouse_dragging(number button)
 	{
