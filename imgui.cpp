@@ -1,11 +1,12 @@
 /*
 * Covariant Script ImGUI Extension
 *
-* Licensed under the Apache License, Version 2.0 (the "License");
+* Licensed under the Covariant Innovation General Public License,
+* Version 1.0 (the "License");
 * you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 *
-* http://www.apache.org/licenses/LICENSE-2.0
+* https://covariant.cn/licenses/LICENSE-1.0
 *
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,7 +14,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *
-* Copyright (C) 2018 Michael Lee(李登淳)
+* Copyright (C) 2019 Michael Lee(李登淳)
 * Email: mikecovlee@163.com
 * Github: https://github.com/mikecovlee
 */
@@ -32,6 +33,7 @@
 #include <cstring>
 #include <cstdio>
 #include <vector>
+#include <memory>
 
 #ifdef IMGUI_IMPL_GL2
 #include "./imgui_gl2.hpp"
@@ -149,14 +151,7 @@ namespace imgui_cs {
 }
 
 // GLFW Instance
-static imgui_cs::glfw_instance glfw_instance;
-// CNI Wrapper
-static cs::namespace_t imgui_ext=cs::make_shared_namespace<cs::name_space>();
-static cs::namespace_t imgui_app_ext=cs::make_shared_namespace<cs::name_space>();
-static cs::namespace_t imgui_img_ext=cs::make_shared_namespace<cs::name_space>();
-static cs::namespace_t imgui_keys_ext=cs::make_shared_namespace<cs::name_space>();
-static cs::namespace_t imgui_dirs_ext=cs::make_shared_namespace<cs::name_space>();
-static cs::namespace_t imgui_flags_ext=cs::make_shared_namespace<cs::name_space>();
+static std::unique_ptr<imgui_cs::glfw_instance> glfw_instance;
 
 class cni_register final {
 public:
@@ -169,6 +164,10 @@ public:
 		register_list.push_back(this);
 	}
 };
+
+// CNI Wrapper
+static cs::namespace_t imgui_app_ext=cs::make_shared_namespace<cs::name_space>();
+static cs::namespace_t imgui_img_ext=cs::make_shared_namespace<cs::name_space>();
 
 std::vector<cni_register*> cni_register::register_list;
 
@@ -431,6 +430,20 @@ namespace imgui_cs_ext {
 	}
 
 	CNI_NORMAL(set_window_size)
+
+	void set_next_window_collapsed(bool collapsed)
+	{
+		ImGui::SetNextWindowCollapsed(collapsed);
+	}
+
+	CNI_NORMAL(set_next_window_collapsed)
+
+	void set_window_collapsed(bool collapsed)
+	{
+		ImGui::SetWindowCollapsed(collapsed);
+	}
+
+	CNI_NORMAL(set_window_collapsed)
 
 	void set_next_window_focus()
 	{
@@ -782,6 +795,16 @@ namespace imgui_cs_ext {
 
 	CNI_NORMAL(input_text)
 
+	void input_text_hint(const string &str, const string &hint, string &text, number buff_size)
+	{
+		imgui_cs::buffer<> buff(buff_size);
+		std::strcpy(buff.get(), text.c_str());
+		ImGui::InputTextWithHint(str.c_str(), hint.c_str(), buff.get(), buff_size);
+		text = buff.get();
+	}
+
+	CNI_NORMAL(input_text_hint)
+
 	void input_text_multiline(const string &str, string &text, number buff_size)
 	{
 		imgui_cs::buffer<> buff(buff_size);
@@ -972,7 +995,46 @@ namespace imgui_cs_ext {
 		ImGui::CloseCurrentPopup();
 	}
 
-	CNI_NORMAL(close_current_popup);
+	CNI_NORMAL(close_current_popup)
+
+// Tab Bars, Tabs
+	bool begin_tab_bar(const string &str)
+	{
+		return ImGui::BeginTabBar(str.c_str());
+	}
+
+	CNI_NORMAL(begin_tab_bar)
+
+	void end_tab_bar()
+	{
+		ImGui::EndTabBar();
+	}
+
+	CNI_NORMAL(end_tab_bar)
+
+	bool begin_tab_item(const string &str, bool &open, const array &flags_arr)
+	{
+		ImGuiTabItemFlags flags = 0;
+		for (auto &it : flags_arr)
+			flags |= it.const_val<ImGuiTabItemFlags>();
+		return ImGui::BeginTabItem(str.c_str(), &open, flags);
+	}
+
+	CNI_NORMAL(begin_tab_item)
+
+	void end_tab_item()
+	{
+		ImGui::EndTabItem();
+	}
+
+	CNI_NORMAL(end_tab_item)
+
+	void set_tab_item_closed(const string &str)
+	{
+		ImGui::SetTabItemClosed(str.c_str());
+	}
+
+	CNI_NORMAL(set_tab_item_closed)
 
 // Columns
 	void columns(number count, const string &id, bool border)
@@ -1054,6 +1116,55 @@ namespace imgui_cs_ext {
 
 	CNI_NORMAL(is_item_hovered)
 
+	bool is_item_active()
+	{
+		return ImGui::IsItemActive();
+	}
+
+	CNI_NORMAL(is_item_active)
+
+	bool is_item_focused()
+	{
+		return ImGui::IsItemFocused();
+	}
+
+	CNI_NORMAL(is_item_focused)
+
+	bool is_item_clicked(number button)
+	{
+		return ImGui::IsItemClicked(button);
+	}
+
+	CNI_NORMAL(is_item_clicked)
+
+	bool is_item_visible()
+	{
+		return ImGui::IsItemVisible();
+	}
+
+	CNI_NORMAL(is_item_visible)
+
+	bool is_any_item_hovered()
+	{
+		return ImGui::IsAnyItemHovered();
+	}
+
+	CNI_NORMAL(is_any_item_hovered)
+
+	bool is_any_item_active()
+	{
+		return ImGui::IsAnyItemActive();
+	}
+
+	CNI_NORMAL(is_any_item_active)
+
+	bool is_any_item_focused()
+	{
+		return ImGui::IsAnyItemFocused();
+	}
+
+	CNI_NORMAL(is_any_item_focused)
+
 // Inputs
 	number get_key_index(ImGuiKey key)
 	{
@@ -1083,6 +1194,20 @@ namespace imgui_cs_ext {
 
 	CNI_NORMAL(is_key_released)
 
+	bool is_mouse_down(number button)
+	{
+		return ImGui::IsMouseDown(button);
+	}
+
+	CNI_NORMAL(is_mouse_down)
+
+	bool is_any_mouse_down()
+	{
+		return ImGui::IsAnyMouseDown();
+	}
+	
+	CNI_NORMAL(is_any_mouse_down)
+
 	bool is_mouse_clicked(number button)
 	{
 		return ImGui::IsMouseClicked(button);
@@ -1096,6 +1221,13 @@ namespace imgui_cs_ext {
 	}
 
 	CNI_NORMAL(is_mouse_double_clicked)
+
+	bool is_mouse_released(number button)
+	{
+		return ImGui::IsMouseReleased(button);
+	}
+
+	CNI_NORMAL(is_mouse_released)
 
 	bool is_mouse_dragging(number button)
 	{
@@ -1228,6 +1360,10 @@ namespace imgui_cs_ext {
 
 	void init(name_space *imgui_ext)
 	{
+		// CNI Wrapper
+		cs::namespace_t imgui_keys_ext=cs::make_shared_namespace<cs::name_space>();
+		cs::namespace_t imgui_dirs_ext=cs::make_shared_namespace<cs::name_space>();
+		cs::namespace_t imgui_flags_ext=cs::make_shared_namespace<cs::name_space>();
 		// Functions
 		for(auto& reg:cni_register::register_list)
 			imgui_ext->add_var(reg->name, reg->func);
@@ -1291,7 +1427,9 @@ namespace imgui_cs_ext {
 		.add_var("always_auto_resize", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_AlwaysAutoResize))
 		.add_var("no_saved_settings", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_NoSavedSettings))
 		.add_var("menu_bar", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_MenuBar))
-		.add_var("horizontal_scroll_bar", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_HorizontalScrollbar));
+		.add_var("horizontal_scroll_bar", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_HorizontalScrollbar))
+		.add_var("unsaved_document", var::make_constant<ImGuiTabItemFlags>(ImGuiTabItemFlags_UnsavedDocument))
+		.add_var("set_selected", var::make_constant<ImGuiTabItemFlags>(ImGuiTabItemFlags_SetSelected));
 	}
 }
 
@@ -1323,5 +1461,6 @@ namespace cs_impl {
 
 void cs_extension_main(cs::name_space* ns)
 {
+	glfw_instance.reset(new imgui_cs::glfw_instance);
 	imgui_cs_ext::init(ns);
 }

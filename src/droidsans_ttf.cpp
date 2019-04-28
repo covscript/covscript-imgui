@@ -1203,8 +1203,8 @@ static const char droidsans_ttf_compressed_data_base85[167935+1] =
     "pL;8$IH4I#xh'+$wXM8$QaXI#(+L+$'f`8$`G_J#uBwntj2#&#S@wntW:$##(PUV$$t#p@4####";
 
 namespace imgui_cs {
-    const char *get_droidsans_ttf_data()
-    {
-        return droidsans_ttf_compressed_data_base85;
-    }
+	const char *get_droidsans_ttf_data()
+	{
+		return droidsans_ttf_compressed_data_base85;
+	}
 }
