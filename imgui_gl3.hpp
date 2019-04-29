@@ -75,7 +75,8 @@ namespace imgui_cs {
 #endif
 			glfwMakeContextCurrent(window);
 			glfwSwapInterval(1);
-			gl3wInit();
+			if(gl3wInit()!=0)
+				throw cs::lang_error("Failed to initialize OpenGL loader.");
 			IMGUI_CHECKVERSION();
 			ImGui::CreateContext();
 			ImGui_ImplGlfw_InitForOpenGL(window, true);

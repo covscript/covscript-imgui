@@ -44,7 +44,7 @@
 #endif
 
 namespace imgui_cs {
-	template<typename char_t = char>
+	template <typename char_t = char>
 	class buffer final {
 		char_t *buff = nullptr;
 
@@ -99,13 +99,13 @@ namespace imgui_cs {
 				fclose(file);
 				throw cs::lang_error("Not a correct BMP file");
 			}
-			if (*(int *) &(header[0x1C]) != 24) {
+			if (*(int *)&(header[0x1C]) != 24) {
 				fclose(file);
 				throw cs::lang_error("Not a 24-bit BMP file");
 			}
-			width = *(int *) &(header[0x12]);
-			height = *(int *) &(header[0x16]);
-			image_size = *(int *) &(header[0x22]);
+			width = *(int *)&(header[0x12]);
+			height = *(int *)&(header[0x16]);
+			image_size = *(int *)&(header[0x22]);
 			if (image_size == 0)
 				image_size = width * height * 3;
 			data = new unsigned char[image_size];
@@ -148,35 +148,35 @@ namespace imgui_cs {
 			return reinterpret_cast<ImTextureID>(textureID);
 		}
 	};
-}
+} // namespace imgui_cs
 
 // GLFW Instance
 static std::unique_ptr<imgui_cs::glfw_instance> glfw_instance;
 
 class cni_register final {
 public:
-	static std::vector<cni_register*> register_list;
+	static std::vector<cni_register *> register_list;
 	std::string name;
 	cs::var func;
-	template<typename _fT>
-	cni_register(const char *str, _fT &&func, bool is_const):name(str), func(cs::make_cni(func, is_const))
+	template <typename _fT>
+	cni_register(const char *str, _fT &&func, bool is_const) : name(str), func(cs::make_cni(func, is_const))
 	{
 		register_list.push_back(this);
 	}
 };
 
 // CNI Wrapper
-static cs::namespace_t imgui_app_ext=cs::make_shared_namespace<cs::name_space>();
-static cs::namespace_t imgui_img_ext=cs::make_shared_namespace<cs::name_space>();
+static cs::namespace_t imgui_app_ext = cs::make_shared_namespace<cs::name_space>();
+static cs::namespace_t imgui_img_ext = cs::make_shared_namespace<cs::name_space>();
 
-std::vector<cni_register*> cni_register::register_list;
+std::vector<cni_register *> cni_register::register_list;
 
 #define CNI_NAME_MIXER(PREFIX, NAME) static cni_register PREFIX##NAME
-#define CNI_REGISTER(NAME, ARGS) CNI_NAME_MIXER(_cni_register_, NAME) \
-\
-\
-(#NAME,                                                               \
- NAME, ARGS);
+#define CNI_REGISTER(NAME, ARGS)         \
+	CNI_NAME_MIXER(_cni_register_, NAME) \
+                                         \
+	(#NAME,                              \
+	 NAME, ARGS);
 #define CNI_NORMAL(name) CNI_REGISTER(name, false)
 #define CNI_CONST(name) CNI_REGISTER(name, true)
 
@@ -274,7 +274,7 @@ namespace imgui_cs_ext {
 		{
 			app->render();
 		}
-	}
+	} // namespace applicaion_cs_ext
 
 // ImGui Image
 	image_t load_bmp_image(const string &path)
@@ -294,7 +294,7 @@ namespace imgui_cs_ext {
 		{
 			return image->get_height();
 		}
-	}
+	} // namespace image_cs_ext
 
 // ImGui Functions
 	ImVec2 vec2(number a, number b)
@@ -328,7 +328,9 @@ namespace imgui_cs_ext {
 
 	void add_font_chinese(const string &str, number size)
 	{
-		ImGui::GetIO().FontDefault = ImGui::GetIO().Fonts->AddFontFromFileTTF(str.c_str(), size, nullptr, ImGui::GetIO().Fonts->GetGlyphRangesChineseFull());
+		ImFontConfig font_cfg = ImFontConfig();
+		font_cfg.OversampleH = font_cfg.OversampleV = 1;
+		ImGui::GetIO().FontDefault = ImGui::GetIO().Fonts->AddFontFromFileTTF(str.c_str(), size, &font_cfg, ImGui::GetIO().Fonts->GetGlyphRangesChineseFull());
 	}
 
 	CNI_NORMAL(add_font_chinese)
@@ -354,6 +356,7 @@ namespace imgui_cs_ext {
 	void add_font_extend_cn(const imgui_cs::font& f, number size)
 	{
 		ImFontConfig font_cfg = ImFontConfig();
+		font_cfg.OversampleH = font_cfg.OversampleV = 1;
 		ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "%s, %.0fpx", f.name, (float)size);
 		ImGui::GetIO().FontDefault = ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(f.data, size, &font_cfg, ImGui::GetIO().Fonts->GetGlyphRangesChineseFull());
 	}
@@ -1205,7 +1208,7 @@ namespace imgui_cs_ext {
 	{
 		return ImGui::IsAnyMouseDown();
 	}
-	
+
 	CNI_NORMAL(is_any_mouse_down)
 
 	bool is_mouse_clicked(number button)
@@ -1361,11 +1364,11 @@ namespace imgui_cs_ext {
 	void init(name_space *imgui_ext)
 	{
 		// CNI Wrapper
-		cs::namespace_t imgui_keys_ext=cs::make_shared_namespace<cs::name_space>();
-		cs::namespace_t imgui_dirs_ext=cs::make_shared_namespace<cs::name_space>();
-		cs::namespace_t imgui_flags_ext=cs::make_shared_namespace<cs::name_space>();
+		cs::namespace_t imgui_keys_ext = cs::make_shared_namespace<cs::name_space>();
+		cs::namespace_t imgui_dirs_ext = cs::make_shared_namespace<cs::name_space>();
+		cs::namespace_t imgui_flags_ext = cs::make_shared_namespace<cs::name_space>();
 		// Functions
-		for(auto& reg:cni_register::register_list)
+		for (auto &reg : cni_register::register_list)
 			imgui_ext->add_var(reg->name, reg->func);
 		// Namespaces
 		(*imgui_ext)
@@ -1431,35 +1434,35 @@ namespace imgui_cs_ext {
 		.add_var("unsaved_document", var::make_constant<ImGuiTabItemFlags>(ImGuiTabItemFlags_UnsavedDocument))
 		.add_var("set_selected", var::make_constant<ImGuiTabItemFlags>(ImGuiTabItemFlags_SetSelected));
 	}
-}
+} // namespace imgui_cs_ext
 
 namespace cs_impl {
-	template<>
+	template <>
 	cs::namespace_t &get_ext<imgui_cs_ext::application_t>()
 	{
 		return imgui_app_ext;
 	}
 
-	template<>
+	template <>
 	constexpr const char *get_name_of_type<imgui_cs_ext::application_t>()
 	{
 		return "cs::imgui::application";
 	}
 
-	template<>
+	template <>
 	cs::namespace_t &get_ext<imgui_cs_ext::image_t>()
 	{
 		return imgui_img_ext;
 	}
 
-	template<>
+	template <>
 	constexpr const char *get_name_of_type<imgui_cs_ext::image_t>()
 	{
 		return "cs::imgui::image";
 	}
-}
+} // namespace cs_impl
 
-void cs_extension_main(cs::name_space* ns)
+void cs_extension_main(cs::name_space *ns)
 {
 	glfw_instance.reset(new imgui_cs::glfw_instance);
 	imgui_cs_ext::init(ns);
