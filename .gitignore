@@ -39,7 +39,8 @@ include/sparsepp
 
 # Builds
 build/
-cmake-build/
+unix-cmake-build/
+win32-cmake-build/
 
 # ImGUI Files
 imgui.ini
