@@ -19,7 +19,7 @@
 * Github: https://github.com/mikecovlee
 */
 
-#include "imgui.hpp"
+#include <imgui.hpp>
 
 // ImGUI Common Header
 #include <imgui.h>
@@ -36,10 +36,10 @@
 #include <memory>
 
 #ifdef IMGUI_IMPL_GL2
-#include "./imgui_gl2.hpp"
+#include <imgui_gl2.hpp>
 #else
 
-#include "./imgui_gl3.hpp"
+#include <imgui_gl3.hpp>
 
 #endif
 
