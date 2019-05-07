@@ -23,7 +23,7 @@
 #include <imgui_impl_opengl2.h>
 
 namespace imgui_cs {
-	const char *get_droidsans_ttf_data();
+	const char *get_default_font_data();
 
 	class glfw_instance final {
 		static void error_callback(int error, const char *description)
@@ -64,7 +64,7 @@ namespace imgui_cs {
 			ImGui_ImplOpenGL2_Init();
 			ImFontConfig font_cfg = ImFontConfig();
 			ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "DefaultFont, 14px");
-			ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(get_droidsans_ttf_data(), 14, &font_cfg);
+			ImGui::GetIO().FontDefault = ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(get_default_font_data(), 14, &font_cfg);
 		}
 
 	public:

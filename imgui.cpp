@@ -339,7 +339,7 @@ namespace imgui_cs_ext {
 	{
 		ImFontConfig font_cfg = ImFontConfig();
 		ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "DefaultFont, %.0fpx", (float)size);
-		ImGui::GetIO().FontDefault = ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(imgui_cs::get_droidsans_ttf_data(), size, &font_cfg);
+		ImGui::GetIO().FontDefault = ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(imgui_cs::get_default_font_data(), size, &font_cfg);
 	}
 
 	CNI_NORMAL(add_font_default)

@@ -26,7 +26,7 @@ endif ()
 
 set(IMGUI_SOURCE_CODE
         impl/imgui_impl_glfw.cpp
-        src/droidsans_ttf.cpp
+        res/default_font.cpp
         src/gl3w.c
         src/imgui.cpp
         src/imgui_demo.cpp
