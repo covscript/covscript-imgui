@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-mkdir cmake-build/unix
-cd    cmake-build/unix
+mkdir -p cmake-build/unix
+cd       cmake-build/unix
 cmake -G "Unix Makefiles" ../..
 cmake --build . -- -j4
 cd ../..
