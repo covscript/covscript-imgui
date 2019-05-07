@@ -61,7 +61,7 @@ while !app.is_closed()
             var tab=new tab_item
             tab.id="TAB"+to_string(++id)
             tab.title=title
-            foreach it:tab_list
+            foreach it in tab_list
                 if title==it.title
                     tab.title+=tab_list.size()
                 end
@@ -73,7 +73,7 @@ while !app.is_closed()
             tab_list.push_back(tab)
         end
         begin_tab_bar("Tab Bar")
-            foreach it:tab_list
+            foreach it in tab_list
                 push_id(it.id)
                 if begin_tab_item(it.title, it.state, it.flags)
                     text(it.text)

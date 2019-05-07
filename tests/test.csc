@@ -3,7 +3,7 @@ import imgui_font
 using imgui
 system.file.remove("./imgui.ini")
 var app=window_application(0.75*imgui.get_monitor_width(0),0.75*imgui.get_monitor_height(0),"CovScript ImGUI测试程序")
-add_font_extend_cn(imgui_font.source_han_sans, 32)
+var font=add_font_extend_cn(imgui_font.source_han_sans, 32)
 set_font_scale(0.5)
 var window_opened=true
 var progress=0
@@ -12,6 +12,7 @@ var combo_choice=1
 var texts=new string
 while !app.is_closed()
     app.prepare()
+    push_font(font)
     begin_window("测试窗口",window_opened,{flags.always_auto_resize})
         if !window_opened
             break
@@ -62,6 +63,7 @@ while !app.is_closed()
         separator()
         text(texts)
     end_window()
+    pop_font()
     window_opened=true
     app.render()
 end

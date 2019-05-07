@@ -318,50 +318,78 @@ namespace imgui_cs_ext {
 
 	CNI_NORMAL(get_framerate)
 
-// Styles
-	void add_font(const string &str, number size)
+// Styles and Fonts
+	ImFont* add_font(const string &str, number size)
 	{
-		ImGui::GetIO().FontDefault = ImGui::GetIO().Fonts->AddFontFromFileTTF(str.c_str(), size);
+		return ImGui::GetIO().Fonts->AddFontFromFileTTF(str.c_str(), size);
 	}
 
 	CNI_NORMAL(add_font)
 
-	void add_font_chinese(const string &str, number size)
+	ImFont* add_font_chinese(const string &str, number size)
 	{
 		ImFontConfig font_cfg = ImFontConfig();
 		font_cfg.OversampleH = font_cfg.OversampleV = 1;
-		ImGui::GetIO().FontDefault = ImGui::GetIO().Fonts->AddFontFromFileTTF(str.c_str(), size, &font_cfg, ImGui::GetIO().Fonts->GetGlyphRangesChineseFull());
+		return ImGui::GetIO().Fonts->AddFontFromFileTTF(str.c_str(), size, &font_cfg, ImGui::GetIO().Fonts->GetGlyphRangesChineseFull());
 	}
 
 	CNI_NORMAL(add_font_chinese)
 
-	void add_font_default(number size)
+	ImFont* add_font_default(number size)
 	{
 		ImFontConfig font_cfg = ImFontConfig();
 		ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "DefaultFont, %.0fpx", (float)size);
-		ImGui::GetIO().FontDefault = ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(imgui_cs::get_default_font_data(), size, &font_cfg);
+		return ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(imgui_cs::get_default_font_data(), size, &font_cfg);
 	}
 
 	CNI_NORMAL(add_font_default)
 
-	void add_font_extend(const imgui_cs::font& f, number size)
+	ImFont* add_font_extend(const imgui_cs::font& f, number size)
 	{
 		ImFontConfig font_cfg = ImFontConfig();
 		ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "%s, %.0fpx", f.name, (float)size);
-		ImGui::GetIO().FontDefault = ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(f.data, size, &font_cfg);
+		return ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(f.data, size, &font_cfg);
 	}
 
 	CNI_NORMAL(add_font_extend)
 
-	void add_font_extend_cn(const imgui_cs::font& f, number size)
+	ImFont* add_font_extend_cn(const imgui_cs::font& f, number size)
 	{
 		ImFontConfig font_cfg = ImFontConfig();
 		font_cfg.OversampleH = font_cfg.OversampleV = 1;
 		ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "%s, %.0fpx", f.name, (float)size);
-		ImGui::GetIO().FontDefault = ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(f.data, size, &font_cfg, ImGui::GetIO().Fonts->GetGlyphRangesChineseFull());
+		return ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(f.data, size, &font_cfg, ImGui::GetIO().Fonts->GetGlyphRangesChineseFull());
 	}
 
 	CNI_NORMAL(add_font_extend_cn)
+
+	void push_font(ImFont* font)
+	{
+		ImGui::PushFont(font);
+	}
+
+	CNI_NORMAL(push_font)
+
+	void pop_font()
+	{
+		ImGui::PopFont();
+	}
+
+	CNI_NORMAL(pop_font)
+
+	ImFont* get_font()
+	{
+		return ImGui::GetFont();
+	}
+
+	CNI_NORMAL(get_font)
+
+	number get_font_size()
+	{
+		return ImGui::GetFontSize();
+	}
+
+	CNI_NORMAL(get_font_size)
 
 	void set_font_scale(number scale)
 	{
@@ -1347,9 +1375,9 @@ namespace imgui_cs_ext {
 
 	CNI_NORMAL(add_circle_filled)
 
-	void add_text(const ImVec2 &pos, const ImVec4 &color, const string &text)
+	void add_text(ImFont* font, number size, const ImVec2 &pos, const ImVec4 &color, const string &text)
 	{
-		ImGui::GetWindowDrawList()->AddText(pos, ImColor(color), text.c_str());
+		ImGui::GetWindowDrawList()->AddText(font, size, pos, ImColor(color), text.c_str());
 	}
 
 	CNI_NORMAL(add_text)
