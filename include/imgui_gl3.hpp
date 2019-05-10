@@ -71,11 +71,11 @@ namespace imgui_cs {
 			const char* glsl_version = "#version 150";
 #else
 			// GLSL 130
-			const char* glsl_version = "#version 130";
+			const char *glsl_version = "#version 130";
 #endif
 			glfwMakeContextCurrent(window);
 			glfwSwapInterval(1);
-			if(gl3wInit()!=0)
+			if (gl3wInit() != 0)
 				throw cs::lang_error("Failed to initialize OpenGL loader.");
 			IMGUI_CHECKVERSION();
 			ImGui::CreateContext();
@@ -83,7 +83,8 @@ namespace imgui_cs {
 			ImGui_ImplOpenGL3_Init(glsl_version);
 			ImFontConfig font_cfg = ImFontConfig();
 			ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "DefaultFont, 14px");
-			ImGui::GetIO().FontDefault = ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(get_default_font_data(), 14, &font_cfg);
+			ImGui::GetIO().FontDefault = ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(
+			                                 get_default_font_data(), 14, &font_cfg);
 		}
 
 	public:

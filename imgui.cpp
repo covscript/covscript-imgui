@@ -30,13 +30,11 @@
 #include <GLFW/glfw3.h>
 
 // Other Headers
-#include <cstring>
-#include <cstdio>
-#include <vector>
-#include <memory>
 
 #ifdef IMGUI_IMPL_GL2
+
 #include <imgui_gl2.hpp>
+
 #else
 
 #include <imgui_gl3.hpp>
@@ -44,7 +42,7 @@
 #endif
 
 namespace imgui_cs {
-	template <typename char_t = char>
+	template<typename char_t = char>
 	class buffer final {
 		char_t *buff = nullptr;
 
@@ -99,13 +97,13 @@ namespace imgui_cs {
 				fclose(file);
 				throw cs::lang_error("Not a correct BMP file");
 			}
-			if (*(int *)&(header[0x1C]) != 24) {
+			if (*(int *) &(header[0x1C]) != 24) {
 				fclose(file);
 				throw cs::lang_error("Not a 24-bit BMP file");
 			}
-			width = *(int *)&(header[0x12]);
-			height = *(int *)&(header[0x16]);
-			image_size = *(int *)&(header[0x22]);
+			width = *(int *) &(header[0x12]);
+			height = *(int *) &(header[0x16]);
+			image_size = *(int *) &(header[0x22]);
 			if (image_size == 0)
 				image_size = width * height * 3;
 			data = new unsigned char[image_size];
@@ -151,36 +149,9 @@ namespace imgui_cs {
 } // namespace imgui_cs
 
 // GLFW Instance
-static std::unique_ptr<imgui_cs::glfw_instance> glfw_instance;
+static imgui_cs::glfw_instance glfw_instance;
 
-class cni_register final {
-public:
-	static std::vector<cni_register *> register_list;
-	std::string name;
-	cs::var func;
-	template <typename _fT>
-	cni_register(const char *str, _fT &&func, bool is_const) : name(str), func(cs::make_cni(func, is_const))
-	{
-		register_list.push_back(this);
-	}
-};
-
-// CNI Wrapper
-static cs::namespace_t imgui_app_ext = cs::make_shared_namespace<cs::name_space>();
-static cs::namespace_t imgui_img_ext = cs::make_shared_namespace<cs::name_space>();
-
-std::vector<cni_register *> cni_register::register_list;
-
-#define CNI_NAME_MIXER(PREFIX, NAME) static cni_register PREFIX##NAME
-#define CNI_REGISTER(NAME, ARGS)         \
-	CNI_NAME_MIXER(_cni_register_, NAME) \
-                                         \
-	(#NAME,                              \
-	 NAME, ARGS);
-#define CNI_NORMAL(name) CNI_REGISTER(name, false)
-#define CNI_CONST(name) CNI_REGISTER(name, true)
-
-namespace imgui_cs_ext {
+CNI_ROOT_NAMESPACE {
 	using namespace cs;
 	using application_t = std::shared_ptr<imgui_cs::application>;
 	using image_t = std::shared_ptr<imgui_cs::image>;
@@ -193,7 +164,7 @@ namespace imgui_cs_ext {
 		return count;
 	}
 
-	CNI_NORMAL(get_monitor_count)
+	CNI(get_monitor_count)
 
 	number get_monitor_width(number monitor_id)
 	{
@@ -205,7 +176,7 @@ namespace imgui_cs_ext {
 		return vidmode->width;
 	}
 
-	CNI_NORMAL(get_monitor_width)
+	CNI(get_monitor_width)
 
 	number get_monitor_height(number monitor_id)
 	{
@@ -217,7 +188,7 @@ namespace imgui_cs_ext {
 		return vidmode->height;
 	}
 
-	CNI_NORMAL(get_monitor_height)
+	CNI(get_monitor_height)
 
 // ImGui Application
 	application_t fullscreen_application(number monitor_id, const string &title)
@@ -225,56 +196,65 @@ namespace imgui_cs_ext {
 		return std::make_shared<imgui_cs::application>(monitor_id, title);
 	}
 
-	CNI_NORMAL(fullscreen_application)
+	CNI(fullscreen_application)
 
 	application_t window_application(number width, number height, const string &title)
 	{
 		return std::make_shared<imgui_cs::application>(width, height, title);
 	}
 
-	CNI_NORMAL(window_application)
+	CNI(window_application)
 
-	namespace applicaion_cs_ext {
-		number get_window_width(application_t &app)
-		{
+	CNI_NAMESPACE(application)
+	{
+		number get_window_width(application_t &app) {
 			return app->get_window_width();
 		}
 
-		number get_window_height(application_t &app)
-		{
+		CNI(get_window_width)
+
+		number get_window_height(application_t &app) {
 			return app->get_window_height();
 		}
 
-		void set_window_size(application_t &app, number width, number height)
-		{
+		CNI(get_window_height)
+
+		void set_window_size(application_t &app, number width, number height) {
 			app->set_window_size(width, height);
 		}
 
-		void set_window_title(application_t &app, const string &str)
-		{
+		CNI(set_window_size)
+
+		void set_window_title(application_t &app, const string &str) {
 			app->set_window_title(str);
 		}
 
-		void set_bg_color(application_t &app, const ImVec4 &color)
-		{
+		CNI(set_window_title)
+
+		void set_bg_color(application_t &app, const ImVec4 &color) {
 			app->set_bg_color(color);
 		}
 
-		bool is_closed(application_t &app)
-		{
+		CNI(set_bg_color)
+
+		bool is_closed(application_t &app) {
 			return app->is_closed();
 		}
 
-		void prepare(application_t &app)
-		{
+		CNI(is_closed)
+
+		void prepare(application_t &app) {
 			app->prepare();
 		}
 
-		void render(application_t &app)
-		{
+		CNI(prepare)
+
+		void render(application_t &app) {
 			app->render();
 		}
-	} // namespace applicaion_cs_ext
+
+		CNI(render)
+	}
 
 // ImGui Image
 	image_t load_bmp_image(const string &path)
@@ -282,19 +262,22 @@ namespace imgui_cs_ext {
 		return std::make_shared<imgui_cs::image>(path);
 	}
 
-	CNI_NORMAL(load_bmp_image)
+	CNI(load_bmp_image)
 
-	namespace image_cs_ext {
-		number get_width(const image_t &image)
-		{
+	CNI_NAMESPACE(bmp_image)
+	{
+		number get_width(const image_t &image) {
 			return image->get_width();
 		}
 
-		number get_height(const image_t &image)
-		{
+		CNI(get_width)
+
+		number get_height(const image_t &image) {
 			return image->get_height();
 		}
-	} // namespace image_cs_ext
+
+		CNI(get_height)
+	}
 
 // ImGui Functions
 	ImVec2 vec2(number a, number b)
@@ -316,108 +299,111 @@ namespace imgui_cs_ext {
 		return ImGui::GetIO().Framerate;
 	}
 
-	CNI_NORMAL(get_framerate)
+	CNI(get_framerate)
 
 // Styles and Fonts
-	ImFont* add_font(const string &str, number size)
+	ImFont *add_font(const string &str, number size)
 	{
 		return ImGui::GetIO().Fonts->AddFontFromFileTTF(str.c_str(), size);
 	}
 
-	CNI_NORMAL(add_font)
+	CNI(add_font)
 
-	ImFont* add_font_chinese(const string &str, number size)
+	ImFont *add_font_chinese(const string &str, number size)
 	{
 		ImFontConfig font_cfg = ImFontConfig();
 		font_cfg.OversampleH = font_cfg.OversampleV = 1;
-		return ImGui::GetIO().Fonts->AddFontFromFileTTF(str.c_str(), size, &font_cfg, ImGui::GetIO().Fonts->GetGlyphRangesChineseFull());
+		return ImGui::GetIO().Fonts->AddFontFromFileTTF(str.c_str(), size, &font_cfg,
+		        ImGui::GetIO().Fonts->GetGlyphRangesChineseFull());
 	}
 
-	CNI_NORMAL(add_font_chinese)
+	CNI(add_font_chinese)
 
-	ImFont* add_font_default(number size)
+	ImFont *add_font_default(number size)
 	{
 		ImFontConfig font_cfg = ImFontConfig();
-		ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "DefaultFont, %.0fpx", (float)size);
-		return ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(imgui_cs::get_default_font_data(), size, &font_cfg);
+		ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "DefaultFont, %.0fpx", (float) size);
+		return ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(imgui_cs::get_default_font_data(), size,
+		        &font_cfg);
 	}
 
-	CNI_NORMAL(add_font_default)
+	CNI(add_font_default)
 
-	ImFont* add_font_extend(const imgui_cs::font& f, number size)
+	ImFont *add_font_extend(const imgui_cs::font &f, number size)
 	{
 		ImFontConfig font_cfg = ImFontConfig();
-		ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "%s, %.0fpx", f.name, (float)size);
+		ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "%s, %.0fpx", f.name, (float) size);
 		return ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(f.data, size, &font_cfg);
 	}
 
-	CNI_NORMAL(add_font_extend)
+	CNI(add_font_extend)
 
-	ImFont* add_font_extend_cn(const imgui_cs::font& f, number size)
+	ImFont *add_font_extend_cn(const imgui_cs::font &f, number size)
 	{
 		ImFontConfig font_cfg = ImFontConfig();
 		font_cfg.OversampleH = font_cfg.OversampleV = 1;
-		ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "%s, %.0fpx", f.name, (float)size);
-		return ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(f.data, size, &font_cfg, ImGui::GetIO().Fonts->GetGlyphRangesChineseFull());
+		ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "%s, %.0fpx", f.name, (float) size);
+		return ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(f.data, size, &font_cfg,
+		        ImGui::GetIO().Fonts->GetGlyphRangesChineseFull());
 	}
 
-	CNI_NORMAL(add_font_extend_cn)
+	CNI(add_font_extend_cn)
 
-	void push_font(ImFont* font)
+	void push_font(ImFont *font)
 	{
 		ImGui::PushFont(font);
 	}
 
-	CNI_NORMAL(push_font)
+	CNI(push_font)
 
 	void pop_font()
 	{
 		ImGui::PopFont();
 	}
 
-	CNI_NORMAL(pop_font)
+	CNI(pop_font)
 
-	ImFont* get_font()
+	ImFont *get_font()
 	{
 		return ImGui::GetFont();
 	}
 
-	CNI_NORMAL(get_font)
+	CNI(get_font)
 
 	number get_font_size()
 	{
 		return ImGui::GetFontSize();
 	}
 
-	CNI_NORMAL(get_font_size)
+	CNI(get_font_size)
 
 	void set_font_scale(number scale)
 	{
 		ImGui::GetIO().FontGlobalScale = scale;
 	}
 
-	CNI_NORMAL(set_font_scale)
+	CNI(set_font_scale)
 
 	void style_color_classic()
 	{
 		ImGui::StyleColorsClassic();
 	}
 
-	CNI_NORMAL(style_color_classic)
+	CNI(style_color_classic)
 
 	void style_color_light()
 	{
 		ImGui::StyleColorsLight();
 	}
 
-	CNI_NORMAL(style_color_light)
+	CNI(style_color_light)
 
 	void style_color_dark()
 	{
 		ImGui::StyleColorsDark();
 	}
 
-	CNI_NORMAL(style_color_dark)
+	CNI(style_color_dark)
 
 // Windows
 	void set_next_window_pos(const ImVec2 &pos)
@@ -425,140 +411,140 @@ namespace imgui_cs_ext {
 		ImGui::SetNextWindowPos(pos);
 	}
 
-	CNI_NORMAL(set_next_window_pos)
+	CNI(set_next_window_pos)
 
 	void set_window_pos(const ImVec2 &pos)
 	{
 		ImGui::SetWindowPos(pos);
 	}
 
-	CNI_NORMAL(set_window_pos)
+	CNI(set_window_pos)
 
 	number get_window_pos_x()
 	{
 		return ImGui::GetWindowPos().x;
 	}
 
-	CNI_NORMAL(get_window_pos_x)
+	CNI(get_window_pos_x)
 
 	number get_window_pos_y()
 	{
 		return ImGui::GetWindowPos().y;
 	}
 
-	CNI_NORMAL(get_window_pos_y)
+	CNI(get_window_pos_y)
 
 	void set_next_window_size(const ImVec2 &size)
 	{
 		ImGui::SetNextWindowSize(size);
 	}
 
-	CNI_NORMAL(set_next_window_size)
+	CNI(set_next_window_size)
 
 	void set_window_size(const ImVec2 &size)
 	{
 		ImGui::SetWindowSize(size);
 	}
 
-	CNI_NORMAL(set_window_size)
+	CNI(set_window_size)
 
 	void set_next_window_collapsed(bool collapsed)
 	{
 		ImGui::SetNextWindowCollapsed(collapsed);
 	}
 
-	CNI_NORMAL(set_next_window_collapsed)
+	CNI(set_next_window_collapsed)
 
 	void set_window_collapsed(bool collapsed)
 	{
 		ImGui::SetWindowCollapsed(collapsed);
 	}
 
-	CNI_NORMAL(set_window_collapsed)
+	CNI(set_window_collapsed)
 
 	void set_next_window_focus()
 	{
 		ImGui::SetNextWindowFocus();
 	}
 
-	CNI_NORMAL(set_next_window_focus)
+	CNI(set_next_window_focus)
 
 	void set_window_focus()
 	{
 		ImGui::SetWindowFocus();
 	}
 
-	CNI_NORMAL(set_window_focus)
+	CNI(set_window_focus)
 
 	void set_window_font_scale(number scale)
 	{
 		ImGui::SetWindowFontScale(scale);
 	}
 
-	CNI_NORMAL(set_window_font_scale)
+	CNI(set_window_font_scale)
 
 	number get_window_width()
 	{
 		return ImGui::GetWindowWidth();
 	}
 
-	CNI_NORMAL(get_window_width)
+	CNI(get_window_width)
 
 	number get_window_height()
 	{
 		return ImGui::GetWindowHeight();
 	}
 
-	CNI_NORMAL(get_window_height)
+	CNI(get_window_height)
 
 	void show_demo_window(bool &open)
 	{
 		ImGui::ShowDemoWindow(&open);
 	}
 
-	CNI_NORMAL(show_demo_window)
+	CNI(show_demo_window)
 
 	void show_about_window(bool &open)
 	{
 		ImGui::ShowAboutWindow(&open);
 	}
 
-	CNI_NORMAL(show_about_window)
+	CNI(show_about_window)
 
 	void show_metrics_window(bool &open)
 	{
 		ImGui::ShowMetricsWindow(&open);
 	}
 
-	CNI_NORMAL(show_metrics_window)
+	CNI(show_metrics_window)
 
 	void show_style_editor()
 	{
 		ImGui::ShowStyleEditor();
 	}
 
-	CNI_NORMAL(show_style_editor)
+	CNI(show_style_editor)
 
 	bool show_style_selector(const string &label)
 	{
 		return ImGui::ShowStyleSelector(label.c_str());
 	}
 
-	CNI_NORMAL(show_style_selector)
+	CNI(show_style_selector)
 
 	void show_font_selector(const string &label)
 	{
 		ImGui::ShowFontSelector(label.c_str());
 	}
 
-	CNI_NORMAL(show_font_selector)
+	CNI(show_font_selector)
 
 	void show_user_guide()
 	{
 		ImGui::ShowUserGuide();
 	}
 
-	CNI_NORMAL(show_user_guide)
+	CNI(show_user_guide)
 
 	void begin_window(const string &str, bool &open, const array &flags_arr)
 	{
@@ -568,28 +554,28 @@ namespace imgui_cs_ext {
 		ImGui::Begin(str.c_str(), &open, flags);
 	}
 
-	CNI_NORMAL(begin_window)
+	CNI(begin_window)
 
 	void end_window()
 	{
 		ImGui::End();
 	}
 
-	CNI_NORMAL(end_window)
+	CNI(end_window)
 
 	void begin_child(const string &str)
 	{
 		ImGui::BeginChild(str.c_str());
 	}
 
-	CNI_NORMAL(begin_child)
+	CNI(begin_child)
 
 	void end_child()
 	{
 		ImGui::EndChild();
 	}
 
-	CNI_NORMAL(end_child)
+	CNI(end_child)
 
 // Layouts
 	void begin_group()
@@ -597,49 +583,49 @@ namespace imgui_cs_ext {
 		ImGui::BeginGroup();
 	}
 
-	CNI_NORMAL(begin_group)
+	CNI(begin_group)
 
 	void end_group()
 	{
 		ImGui::EndGroup();
 	}
 
-	CNI_NORMAL(end_group)
+	CNI(end_group)
 
 	void separator()
 	{
 		ImGui::Separator();
 	}
 
-	CNI_NORMAL(separator)
+	CNI(separator)
 
 	void same_line()
 	{
 		ImGui::SameLine();
 	}
 
-	CNI_NORMAL(same_line)
+	CNI(same_line)
 
 	void spacing()
 	{
 		ImGui::Spacing();
 	}
 
-	CNI_NORMAL(spacing)
+	CNI(spacing)
 
 	void indent()
 	{
 		ImGui::Indent();
 	}
 
-	CNI_NORMAL(indent)
+	CNI(indent)
 
 	void unindent()
 	{
 		ImGui::Unindent();
 	}
 
-	CNI_NORMAL(unindent)
+	CNI(unindent)
 
 // ID scopes
 	void push_id(const string &id)
@@ -647,14 +633,14 @@ namespace imgui_cs_ext {
 		ImGui::PushID(id.c_str());
 	}
 
-	CNI_NORMAL(push_id)
+	CNI(push_id)
 
 	void pop_id()
 	{
 		ImGui::PopID();
 	}
 
-	CNI_NORMAL(pop_id)
+	CNI(pop_id)
 
 // Widgets
 	void text(const string &str)
@@ -662,84 +648,84 @@ namespace imgui_cs_ext {
 		ImGui::TextUnformatted(str.c_str());
 	}
 
-	CNI_NORMAL(text)
+	CNI(text)
 
 	void text_colored(const ImVec4 &col, const string &str)
 	{
 		ImGui::TextColored(col, "%s", str.c_str());
 	}
 
-	CNI_NORMAL(text_colored)
+	CNI(text_colored)
 
 	void text_disabled(const string &str)
 	{
 		ImGui::TextDisabled("%s", str.c_str());
 	}
 
-	CNI_NORMAL(text_disabled)
+	CNI(text_disabled)
 
 	void text_wrappered(const string &str)
 	{
 		ImGui::TextWrapped("%s", str.c_str());
 	}
 
-	CNI_NORMAL(text_wrappered)
+	CNI(text_wrappered)
 
 	void label_text(const string &label, const string &str)
 	{
 		ImGui::LabelText(label.c_str(), "%s", str.c_str());
 	}
 
-	CNI_NORMAL(label_text)
+	CNI(label_text)
 
 	void bullet_text(const string &str)
 	{
 		ImGui::BulletText("%s", str.c_str());
 	}
 
-	CNI_NORMAL(bullet_text)
+	CNI(bullet_text)
 
 	bool button(const string &str)
 	{
 		return ImGui::Button(str.c_str());
 	}
 
-	CNI_NORMAL(button)
+	CNI(button)
 
 	bool small_button(const string &str)
 	{
 		return ImGui::SmallButton(str.c_str());
 	}
 
-	CNI_NORMAL(small_button)
+	CNI(small_button)
 
 	bool arrow_button(const string &str, ImGuiDir dir)
 	{
 		return ImGui::ArrowButton(str.c_str(), dir);
 	}
 
-	CNI_NORMAL(arrow_button)
+	CNI(arrow_button)
 
 	void image(const image_t &img, const ImVec2 &size)
 	{
 		ImGui::Image(img->get_texture_id(), size);
 	}
 
-	CNI_NORMAL(image)
+	CNI(image)
 
 	bool image_button(const image_t &img, const ImVec2 &size)
 	{
 		return ImGui::ImageButton(img->get_texture_id(), size);
 	}
 
-	CNI_NORMAL(image_button)
+	CNI(image_button)
 
 	void check_box(const string &str, bool &val)
 	{
 		ImGui::Checkbox(str.c_str(), &val);
 	}
 
-	CNI_NORMAL(check_box)
+	CNI(check_box)
 
 	void radio_button(const string &str, number &v, number v_button)
 	{
@@ -748,7 +734,7 @@ namespace imgui_cs_ext {
 		v = _v;
 	}
 
-	CNI_NORMAL(radio_button)
+	CNI(radio_button)
 
 	float plot_value_getter(void *data, int idx)
 	{
@@ -761,7 +747,7 @@ namespace imgui_cs_ext {
 		                 data.size(), 0, text.c_str());
 	}
 
-	CNI_NORMAL(plot_lines)
+	CNI(plot_lines)
 
 	void plot_histogram(const string &label, const string &text, const array &data)
 	{
@@ -769,21 +755,21 @@ namespace imgui_cs_ext {
 		                     data.size(), 0, text.c_str());
 	}
 
-	CNI_NORMAL(plot_histogram)
+	CNI(plot_histogram)
 
 	void progress_bar(number fraction, const string &overlay)
 	{
 		ImGui::ProgressBar(fraction, ImVec2(-1, 0), overlay.c_str());
 	}
 
-	CNI_NORMAL(progress_bar)
+	CNI(progress_bar)
 
 	void bullet()
 	{
 		ImGui::Bullet();
 	}
 
-	CNI_NORMAL(bullet)
+	CNI(bullet)
 
 	void combo_box(const string &str, number &current, const array &items)
 	{
@@ -796,7 +782,7 @@ namespace imgui_cs_ext {
 		delete[] _items;
 	}
 
-	CNI_NORMAL(combo_box)
+	CNI(combo_box)
 
 	void drag_float(const string &label, number &n)
 	{
@@ -805,7 +791,7 @@ namespace imgui_cs_ext {
 		n = f;
 	}
 
-	CNI_NORMAL(drag_float)
+	CNI(drag_float)
 
 	void slider_float(const string &str, number &n, number min, number max)
 	{
@@ -814,7 +800,7 @@ namespace imgui_cs_ext {
 		n = f;
 	}
 
-	CNI_NORMAL(slider_float)
+	CNI(slider_float)
 
 	void input_text(const string &str, string &text, number buff_size)
 	{
@@ -824,7 +810,7 @@ namespace imgui_cs_ext {
 		text = buff.get();
 	}
 
-	CNI_NORMAL(input_text)
+	CNI(input_text)
 
 	void input_text_hint(const string &str, const string &hint, string &text, number buff_size)
 	{
@@ -834,7 +820,7 @@ namespace imgui_cs_ext {
 		text = buff.get();
 	}
 
-	CNI_NORMAL(input_text_hint)
+	CNI(input_text_hint)
 
 	void input_text_multiline(const string &str, string &text, number buff_size)
 	{
@@ -844,21 +830,21 @@ namespace imgui_cs_ext {
 		text = buff.get();
 	}
 
-	CNI_NORMAL(input_text_multiline)
+	CNI(input_text_multiline)
 
 	void color_edit3(const string &str, ImVec4 &color)
 	{
 		ImGui::ColorEdit3(str.c_str(), reinterpret_cast<float *>(&color));
 	}
 
-	CNI_NORMAL(color_edit3)
+	CNI(color_edit3)
 
 	void color_edit4(const string &str, ImVec4 &color)
 	{
 		ImGui::ColorEdit4(str.c_str(), reinterpret_cast<float *>(&color));
 	}
 
-	CNI_NORMAL(color_edit4)
+	CNI(color_edit4)
 
 // Trees
 	bool tree_node(const string &label)
@@ -866,14 +852,14 @@ namespace imgui_cs_ext {
 		return ImGui::TreeNode(label.c_str());
 	}
 
-	CNI_NORMAL(tree_node)
+	CNI(tree_node)
 
 	void tree_pop()
 	{
 		ImGui::TreePop();
 	}
 
-	CNI_NORMAL(tree_pop)
+	CNI(tree_pop)
 
 // Selectable / Lists
 	void selectable(const string &str, bool &selected)
@@ -881,7 +867,7 @@ namespace imgui_cs_ext {
 		ImGui::Selectable(str.c_str(), &selected);
 	}
 
-	CNI_NORMAL(selectable)
+	CNI(selectable)
 
 	void list_box(const string &str, number &current, const array &items)
 	{
@@ -894,7 +880,7 @@ namespace imgui_cs_ext {
 		delete[] _items;
 	}
 
-	CNI_NORMAL(list_box)
+	CNI(list_box)
 
 // Tooltips
 	void set_tooltip(const string &str)
@@ -902,21 +888,21 @@ namespace imgui_cs_ext {
 		ImGui::SetTooltip("%s", str.c_str());
 	}
 
-	CNI_NORMAL(set_tooltip)
+	CNI(set_tooltip)
 
 	void begin_tooltip()
 	{
 		ImGui::BeginTooltip();
 	}
 
-	CNI_NORMAL(begin_tooltip)
+	CNI(begin_tooltip)
 
 	void end_tooltip()
 	{
 		ImGui::EndTooltip();
 	}
 
-	CNI_NORMAL(end_tooltip)
+	CNI(end_tooltip)
 
 // Menus
 	bool begin_main_menu_bar()
@@ -924,49 +910,49 @@ namespace imgui_cs_ext {
 		return ImGui::BeginMainMenuBar();
 	}
 
-	CNI_NORMAL(begin_main_menu_bar)
+	CNI(begin_main_menu_bar)
 
 	void end_main_menu_bar()
 	{
 		ImGui::EndMainMenuBar();
 	}
 
-	CNI_NORMAL(end_main_menu_bar)
+	CNI(end_main_menu_bar)
 
 	bool begin_menu_bar()
 	{
 		return ImGui::BeginMenuBar();
 	}
 
-	CNI_NORMAL(begin_menu_bar)
+	CNI(begin_menu_bar)
 
 	void end_menu_bar()
 	{
 		ImGui::EndMenuBar();
 	}
 
-	CNI_NORMAL(end_menu_bar)
+	CNI(end_menu_bar)
 
 	bool begin_menu(const string &str, bool enabled)
 	{
 		return ImGui::BeginMenu(str.c_str(), enabled);
 	}
 
-	CNI_NORMAL(begin_menu)
+	CNI(begin_menu)
 
 	void end_menu()
 	{
 		ImGui::EndMenu();
 	}
 
-	CNI_NORMAL(end_menu)
+	CNI(end_menu)
 
 	bool menu_item(const string &str, const string &shortcut, bool enabled)
 	{
 		return ImGui::MenuItem(str.c_str(), shortcut.c_str(), false, enabled);
 	}
 
-	CNI_NORMAL(menu_item)
+	CNI(menu_item)
 
 // Popups
 	void open_popup(const string &id)
@@ -974,35 +960,35 @@ namespace imgui_cs_ext {
 		ImGui::OpenPopup(id.c_str());
 	}
 
-	CNI_NORMAL(open_popup)
+	CNI(open_popup)
 
 	bool begin_popup(const string &id)
 	{
 		return ImGui::BeginPopup(id.c_str());
 	}
 
-	CNI_NORMAL(begin_popup)
+	CNI(begin_popup)
 
 	bool begin_popup_item(const string &id)
 	{
 		return ImGui::BeginPopupContextItem(id.c_str());
 	}
 
-	CNI_NORMAL(begin_popup_item)
+	CNI(begin_popup_item)
 
 	bool begin_popup_window()
 	{
 		return ImGui::BeginPopupContextWindow();
 	}
 
-	CNI_NORMAL(begin_popup_window)
+	CNI(begin_popup_window)
 
 	bool begin_popup_background()
 	{
 		return ImGui::BeginPopupContextVoid();
 	}
 
-	CNI_NORMAL(begin_popup_background)
+	CNI(begin_popup_background)
 
 	bool begin_popup_modal(const string &str, bool &open, const array &flags_arr)
 	{
@@ -1012,21 +998,21 @@ namespace imgui_cs_ext {
 		return ImGui::BeginPopupModal(str.c_str(), &open, flags);
 	}
 
-	CNI_NORMAL(begin_popup_modal)
+	CNI(begin_popup_modal)
 
 	void end_popup()
 	{
 		ImGui::EndPopup();
 	}
 
-	CNI_NORMAL(end_popup)
+	CNI(end_popup)
 
 	void close_current_popup()
 	{
 		ImGui::CloseCurrentPopup();
 	}
 
-	CNI_NORMAL(close_current_popup)
+	CNI(close_current_popup)
 
 // Tab Bars, Tabs
 	bool begin_tab_bar(const string &str)
@@ -1034,14 +1020,14 @@ namespace imgui_cs_ext {
 		return ImGui::BeginTabBar(str.c_str());
 	}
 
-	CNI_NORMAL(begin_tab_bar)
+	CNI(begin_tab_bar)
 
 	void end_tab_bar()
 	{
 		ImGui::EndTabBar();
 	}
 
-	CNI_NORMAL(end_tab_bar)
+	CNI(end_tab_bar)
 
 	bool begin_tab_item(const string &str, bool &open, const array &flags_arr)
 	{
@@ -1051,21 +1037,21 @@ namespace imgui_cs_ext {
 		return ImGui::BeginTabItem(str.c_str(), &open, flags);
 	}
 
-	CNI_NORMAL(begin_tab_item)
+	CNI(begin_tab_item)
 
 	void end_tab_item()
 	{
 		ImGui::EndTabItem();
 	}
 
-	CNI_NORMAL(end_tab_item)
+	CNI(end_tab_item)
 
 	void set_tab_item_closed(const string &str)
 	{
 		ImGui::SetTabItemClosed(str.c_str());
 	}
 
-	CNI_NORMAL(set_tab_item_closed)
+	CNI(set_tab_item_closed)
 
 // Columns
 	void columns(number count, const string &id, bool border)
@@ -1073,56 +1059,56 @@ namespace imgui_cs_ext {
 		ImGui::Columns(count, id.c_str(), border);
 	}
 
-	CNI_NORMAL(columns)
+	CNI(columns)
 
 	void next_column()
 	{
 		ImGui::NextColumn();
 	}
 
-	CNI_NORMAL(next_column)
+	CNI(next_column)
 
 	number get_column_index()
 	{
 		return ImGui::GetColumnIndex();
 	}
 
-	CNI_NORMAL(get_column_index)
+	CNI(get_column_index)
 
 	number get_column_width(number index)
 	{
 		return ImGui::GetColumnWidth();
 	}
 
-	CNI_NORMAL(get_column_width)
+	CNI(get_column_width)
 
 	void set_column_width(number index, number width)
 	{
 		ImGui::SetColumnWidth(index, width);
 	}
 
-	CNI_NORMAL(set_column_width)
+	CNI(set_column_width)
 
 	number get_column_offset(number index)
 	{
 		return ImGui::GetColumnOffset(index);
 	}
 
-	CNI_NORMAL(get_column_offset)
+	CNI(get_column_offset)
 
 	void set_column_offset(number index, number offset)
 	{
 		ImGui::SetColumnOffset(index, offset);
 	}
 
-	CNI_NORMAL(set_column_offset)
+	CNI(set_column_offset)
 
 	number get_columns_count()
 	{
 		return ImGui::GetColumnsCount();
 	}
 
-	CNI_NORMAL(get_columns_count)
+	CNI(get_columns_count)
 
 // Focus, Activation
 	void set_scroll_here()
@@ -1130,14 +1116,14 @@ namespace imgui_cs_ext {
 		ImGui::SetScrollHere();
 	}
 
-	CNI_NORMAL(set_scroll_here)
+	CNI(set_scroll_here)
 
 	void set_keyboard_focus_here()
 	{
 		ImGui::SetKeyboardFocusHere();
 	}
 
-	CNI_NORMAL(set_keyboard_focus_here)
+	CNI(set_keyboard_focus_here)
 
 // Utilities
 	bool is_item_hovered()
@@ -1145,56 +1131,56 @@ namespace imgui_cs_ext {
 		return ImGui::IsItemHovered();
 	}
 
-	CNI_NORMAL(is_item_hovered)
+	CNI(is_item_hovered)
 
 	bool is_item_active()
 	{
 		return ImGui::IsItemActive();
 	}
 
-	CNI_NORMAL(is_item_active)
+	CNI(is_item_active)
 
 	bool is_item_focused()
 	{
 		return ImGui::IsItemFocused();
 	}
 
-	CNI_NORMAL(is_item_focused)
+	CNI(is_item_focused)
 
 	bool is_item_clicked(number button)
 	{
 		return ImGui::IsItemClicked(button);
 	}
 
-	CNI_NORMAL(is_item_clicked)
+	CNI(is_item_clicked)
 
 	bool is_item_visible()
 	{
 		return ImGui::IsItemVisible();
 	}
 
-	CNI_NORMAL(is_item_visible)
+	CNI(is_item_visible)
 
 	bool is_any_item_hovered()
 	{
 		return ImGui::IsAnyItemHovered();
 	}
 
-	CNI_NORMAL(is_any_item_hovered)
+	CNI(is_any_item_hovered)
 
 	bool is_any_item_active()
 	{
 		return ImGui::IsAnyItemActive();
 	}
 
-	CNI_NORMAL(is_any_item_active)
+	CNI(is_any_item_active)
 
 	bool is_any_item_focused()
 	{
 		return ImGui::IsAnyItemFocused();
 	}
 
-	CNI_NORMAL(is_any_item_focused)
+	CNI(is_any_item_focused)
 
 // Inputs
 	number get_key_index(ImGuiKey key)
@@ -1202,112 +1188,112 @@ namespace imgui_cs_ext {
 		return ImGui::GetKeyIndex(key);
 	}
 
-	CNI_NORMAL(get_key_index)
+	CNI(get_key_index)
 
 	bool is_key_down(number key)
 	{
 		return ImGui::IsKeyDown(key);
 	}
 
-	CNI_NORMAL(is_key_down)
+	CNI(is_key_down)
 
 	bool is_key_pressed(number key)
 	{
 		return ImGui::IsKeyPressed(key);
 	}
 
-	CNI_NORMAL(is_key_pressed)
+	CNI(is_key_pressed)
 
 	bool is_key_released(number key)
 	{
 		return ImGui::IsKeyReleased(key);
 	}
 
-	CNI_NORMAL(is_key_released)
+	CNI(is_key_released)
 
 	bool is_mouse_down(number button)
 	{
 		return ImGui::IsMouseDown(button);
 	}
 
-	CNI_NORMAL(is_mouse_down)
+	CNI(is_mouse_down)
 
 	bool is_any_mouse_down()
 	{
 		return ImGui::IsAnyMouseDown();
 	}
 
-	CNI_NORMAL(is_any_mouse_down)
+	CNI(is_any_mouse_down)
 
 	bool is_mouse_clicked(number button)
 	{
 		return ImGui::IsMouseClicked(button);
 	}
 
-	CNI_NORMAL(is_mouse_clicked)
+	CNI(is_mouse_clicked)
 
 	bool is_mouse_double_clicked(number button)
 	{
 		return ImGui::IsMouseDoubleClicked(button);
 	}
 
-	CNI_NORMAL(is_mouse_double_clicked)
+	CNI(is_mouse_double_clicked)
 
 	bool is_mouse_released(number button)
 	{
 		return ImGui::IsMouseReleased(button);
 	}
 
-	CNI_NORMAL(is_mouse_released)
+	CNI(is_mouse_released)
 
 	bool is_mouse_dragging(number button)
 	{
 		return ImGui::IsMouseDragging(button);
 	}
 
-	CNI_NORMAL(is_mouse_dragging)
+	CNI(is_mouse_dragging)
 
 	number get_mouse_pos_x()
 	{
 		return ImGui::GetMousePos().x;
 	}
 
-	CNI_NORMAL(get_mouse_pos_x)
+	CNI(get_mouse_pos_x)
 
 	number get_mouse_pos_y()
 	{
 		return ImGui::GetMousePos().y;
 	}
 
-	CNI_NORMAL(get_mouse_pos_y)
+	CNI(get_mouse_pos_y)
 
 	number get_mouse_drag_delta_x()
 	{
 		return ImGui::GetMouseDragDelta().x;
 	}
 
-	CNI_NORMAL(get_mouse_drag_delta_x)
+	CNI(get_mouse_drag_delta_x)
 
 	number get_mouse_drag_delta_y()
 	{
 		return ImGui::GetMouseDragDelta().y;
 	}
 
-	CNI_NORMAL(get_mouse_drag_delta_y)
+	CNI(get_mouse_drag_delta_y)
 
 	string get_clipboard_text()
 	{
 		return ImGui::GetClipboardText();
 	}
 
-	CNI_NORMAL(get_clipboard_text)
+	CNI(get_clipboard_text)
 
 	void set_clipboard_text(const string &str)
 	{
 		ImGui::SetClipboardText(str.c_str());
 	}
 
-	CNI_NORMAL(set_clipboard_text)
+	CNI(set_clipboard_text)
 
 // Canvas
 	void add_line(const ImVec2 &a, const ImVec2 &b, const ImVec4 &color, number thickness)
@@ -1315,7 +1301,7 @@ namespace imgui_cs_ext {
 		ImGui::GetWindowDrawList()->AddLine(a, b, ImColor(color), thickness);
 	}
 
-	CNI_NORMAL(add_line)
+	CNI(add_line)
 
 	void add_rect(const ImVec2 &a, const ImVec2 &b, const ImVec4 &color, number rounding, number thickness)
 	{
@@ -1323,14 +1309,14 @@ namespace imgui_cs_ext {
 		                                    thickness);
 	}
 
-	CNI_NORMAL(add_rect)
+	CNI(add_rect)
 
 	void add_rect_filled(const ImVec2 &a, const ImVec2 &b, const ImVec4 &color, number rounding)
 	{
 		ImGui::GetWindowDrawList()->AddRectFilled(a, b, ImColor(color), rounding, ImDrawCornerFlags_All);
 	}
 
-	CNI_NORMAL(add_rect_filled)
+	CNI(add_rect_filled)
 
 	void add_quad(const ImVec2 &a, const ImVec2 &b, const ImVec2 &c, const ImVec2 &d, const ImVec4 &color,
 	              number thickness)
@@ -1338,160 +1324,105 @@ namespace imgui_cs_ext {
 		ImGui::GetWindowDrawList()->AddQuad(a, b, c, d, ImColor(color), thickness);
 	}
 
-	CNI_NORMAL(add_quad)
+	CNI(add_quad)
 
 	void add_quad_filled(const ImVec2 &a, const ImVec2 &b, const ImVec2 &c, const ImVec2 &d, const ImVec4 &color)
 	{
 		ImGui::GetWindowDrawList()->AddQuadFilled(a, b, c, d, ImColor(color));
 	}
 
-	CNI_NORMAL(add_quad_filled)
+	CNI(add_quad_filled)
 
 	void add_triangle(const ImVec2 &a, const ImVec2 &b, const ImVec2 &c, const ImVec4 &color, number thickness)
 	{
 		ImGui::GetWindowDrawList()->AddTriangle(a, b, c, ImColor(color), thickness);
 	}
 
-	CNI_NORMAL(add_triangle)
+	CNI(add_triangle)
 
 	void add_triangle_filled(const ImVec2 &a, const ImVec2 &b, const ImVec2 &c, const ImVec4 &color)
 	{
 		ImGui::GetWindowDrawList()->AddTriangleFilled(a, b, c, ImColor(color));
 	}
 
-	CNI_NORMAL(add_triangle_filled)
+	CNI(add_triangle_filled)
 
 	void add_circle(const ImVec2 &centre, number radius, const ImVec4 &color, number seg, number thickness)
 	{
 		ImGui::GetWindowDrawList()->AddCircle(centre, radius, ImColor(color), seg, thickness);
 	}
 
-	CNI_NORMAL(add_circle)
+	CNI(add_circle)
 
 	void add_circle_filled(const ImVec2 &centre, number radius, const ImVec4 &color, number seg)
 	{
 		ImGui::GetWindowDrawList()->AddCircleFilled(centre, radius, ImColor(color), seg);
 	}
 
-	CNI_NORMAL(add_circle_filled)
+	CNI(add_circle_filled)
 
-	void add_text(ImFont* font, number size, const ImVec2 &pos, const ImVec4 &color, const string &text)
+	void add_text(ImFont *font, number size, const ImVec2 &pos, const ImVec4 &color, const string &text)
 	{
 		ImGui::GetWindowDrawList()->AddText(font, size, pos, ImColor(color), text.c_str());
 	}
 
-	CNI_NORMAL(add_text)
+	CNI(add_text)
 
 	void add_image(const image_t &image, const ImVec2 &a, const ImVec2 &b)
 	{
 		ImGui::GetWindowDrawList()->AddImage(image->get_texture_id(), a, b);
 	}
 
-	CNI_NORMAL(add_image)
+	CNI(add_image)
 
-	void init(name_space *imgui_ext)
+	CNI_NAMESPACE(keys)
 	{
-		// CNI Wrapper
-		cs::namespace_t imgui_keys_ext = cs::make_shared_namespace<cs::name_space>();
-		cs::namespace_t imgui_dirs_ext = cs::make_shared_namespace<cs::name_space>();
-		cs::namespace_t imgui_flags_ext = cs::make_shared_namespace<cs::name_space>();
-		// Functions
-		for (auto &reg : cni_register::register_list)
-			imgui_ext->add_var(reg->name, reg->func);
-		// Namespaces
-		(*imgui_ext)
-		.add_var("applicaion", make_namespace(imgui_app_ext))
-		.add_var("bmp_image", make_namespace(imgui_img_ext))
-		.add_var("keys", make_namespace(imgui_keys_ext))
-		.add_var("dirs", make_namespace(imgui_dirs_ext))
-		.add_var("flags", make_namespace(imgui_flags_ext));
-		// Application
-		(*imgui_app_ext)
-		.add_var("get_window_width", make_cni(applicaion_cs_ext::get_window_width))
-		.add_var("get_window_height", make_cni(applicaion_cs_ext::get_window_height))
-		.add_var("set_window_size", make_cni(applicaion_cs_ext::set_window_size))
-		.add_var("set_window_title", make_cni(applicaion_cs_ext::set_window_title))
-		.add_var("set_bg_color", make_cni(applicaion_cs_ext::set_bg_color))
-		.add_var("is_closed", make_cni(applicaion_cs_ext::is_closed))
-		.add_var("prepare", make_cni(applicaion_cs_ext::prepare))
-		.add_var("render", make_cni(applicaion_cs_ext::render));
-		// Image
-		(*imgui_img_ext)
-		.add_var("get_width", make_cni(image_cs_ext::get_width))
-		.add_var("get_height", make_cni(image_cs_ext::get_height));
-		// Keys
-		(*imgui_keys_ext)
-		.add_var("tab", var::make_constant<ImGuiKey>(ImGuiKey_Tab))
-		.add_var("left", var::make_constant<ImGuiKey>(ImGuiKey_LeftArrow))
-		.add_var("right", var::make_constant<ImGuiKey>(ImGuiKey_RightArrow))
-		.add_var("up", var::make_constant<ImGuiKey>(ImGuiKey_UpArrow))
-		.add_var("down", var::make_constant<ImGuiKey>(ImGuiKey_DownArrow))
-		.add_var("page_up", var::make_constant<ImGuiKey>(ImGuiKey_PageUp))
-		.add_var("page_down", var::make_constant<ImGuiKey>(ImGuiKey_PageDown))
-		.add_var("home", var::make_constant<ImGuiKey>(ImGuiKey_Home))
-		.add_var("end_key", var::make_constant<ImGuiKey>(ImGuiKey_End))
-		.add_var("insert", var::make_constant<ImGuiKey>(ImGuiKey_Insert))
-		.add_var("delete", var::make_constant<ImGuiKey>(ImGuiKey_Delete))
-		.add_var("backspace", var::make_constant<ImGuiKey>(ImGuiKey_Backspace))
-		.add_var("space", var::make_constant<ImGuiKey>(ImGuiKey_Space))
-		.add_var("enter", var::make_constant<ImGuiKey>(ImGuiKey_Enter))
-		.add_var("escape", var::make_constant<ImGuiKey>(ImGuiKey_Escape))
-		.add_var("ctrl_a", var::make_constant<ImGuiKey>(ImGuiKey_A))
-		.add_var("ctrl_c", var::make_constant<ImGuiKey>(ImGuiKey_C))
-		.add_var("ctrl_v", var::make_constant<ImGuiKey>(ImGuiKey_V))
-		.add_var("ctrl_x", var::make_constant<ImGuiKey>(ImGuiKey_X))
-		.add_var("ctrl_y", var::make_constant<ImGuiKey>(ImGuiKey_Y))
-		.add_var("ctrl_z", var::make_constant<ImGuiKey>(ImGuiKey_Z));
-		// Dirs
-		(*imgui_dirs_ext)
-		.add_var("left", var::make_constant<ImGuiDir>(ImGuiDir_Left))
-		.add_var("right", var::make_constant<ImGuiDir>(ImGuiDir_Right))
-		.add_var("up", var::make_constant<ImGuiDir>(ImGuiDir_Up))
-		.add_var("down", var::make_constant<ImGuiDir>(ImGuiDir_Down));
-		// Flags
-		(*imgui_flags_ext)
-		.add_var("no_title_bar", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_NoTitleBar))
-		.add_var("no_resize", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_NoResize))
-		.add_var("no_move", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_NoMove))
-		.add_var("no_scroll_bar", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_NoScrollbar))
-		.add_var("no_collapse", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_NoCollapse))
-		.add_var("always_auto_resize", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_AlwaysAutoResize))
-		.add_var("no_saved_settings", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_NoSavedSettings))
-		.add_var("menu_bar", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_MenuBar))
-		.add_var("horizontal_scroll_bar", var::make_constant<ImGuiWindowFlags>(ImGuiWindowFlags_HorizontalScrollbar))
-		.add_var("unsaved_document", var::make_constant<ImGuiTabItemFlags>(ImGuiTabItemFlags_UnsavedDocument))
-		.add_var("set_selected", var::make_constant<ImGuiTabItemFlags>(ImGuiTabItemFlags_SetSelected));
-	}
-} // namespace imgui_cs_ext
-
-namespace cs_impl {
-	template <>
-	cs::namespace_t &get_ext<imgui_cs_ext::application_t>()
-	{
-		return imgui_app_ext;
+		CNI_VALUE_CONST_V(tab, ImGuiKey, ImGuiKey_Tab)
+		CNI_VALUE_CONST_V(left, ImGuiKey, ImGuiKey_LeftArrow)
+		CNI_VALUE_CONST_V(right, ImGuiKey, ImGuiKey_RightArrow)
+		CNI_VALUE_CONST_V(up, ImGuiKey, ImGuiKey_UpArrow)
+		CNI_VALUE_CONST_V(down, ImGuiKey, ImGuiKey_DownArrow)
+		CNI_VALUE_CONST_V(page_up, ImGuiKey, ImGuiKey_PageUp)
+		CNI_VALUE_CONST_V(page_down, ImGuiKey, ImGuiKey_PageDown)
+		CNI_VALUE_CONST_V(home, ImGuiKey, ImGuiKey_Home)
+		CNI_VALUE_CONST_V(end_key, ImGuiKey, ImGuiKey_End)
+		CNI_VALUE_CONST_V(insert, ImGuiKey, ImGuiKey_Insert)
+		CNI_VALUE_CONST_V(delete, ImGuiKey, ImGuiKey_Delete)
+		CNI_VALUE_CONST_V(backspace, ImGuiKey, ImGuiKey_Backspace)
+		CNI_VALUE_CONST_V(space, ImGuiKey, ImGuiKey_Space)
+		CNI_VALUE_CONST_V(enter, ImGuiKey, ImGuiKey_Enter)
+		CNI_VALUE_CONST_V(escape, ImGuiKey, ImGuiKey_Escape)
+		CNI_VALUE_CONST_V(ctrl_a, ImGuiKey, ImGuiKey_A)
+		CNI_VALUE_CONST_V(ctrl_c, ImGuiKey, ImGuiKey_C)
+		CNI_VALUE_CONST_V(ctrl_v, ImGuiKey, ImGuiKey_V)
+		CNI_VALUE_CONST_V(ctrl_x, ImGuiKey, ImGuiKey_X)
+		CNI_VALUE_CONST_V(ctrl_y, ImGuiKey, ImGuiKey_Y)
+		CNI_VALUE_CONST_V(ctrl_z, ImGuiKey, ImGuiKey_Z)
 	}
 
-	template <>
-	constexpr const char *get_name_of_type<imgui_cs_ext::application_t>()
+	CNI_NAMESPACE(dirs)
 	{
-		return "cs::imgui::application";
+		CNI_VALUE_CONST_V(left, ImGuiDir, ImGuiDir_Left)
+		CNI_VALUE_CONST_V(right, ImGuiDir, ImGuiDir_Right)
+		CNI_VALUE_CONST_V(up, ImGuiDir, ImGuiDir_Up)
+		CNI_VALUE_CONST_V(down, ImGuiDir, ImGuiDir_Down)
 	}
 
-	template <>
-	cs::namespace_t &get_ext<imgui_cs_ext::image_t>()
+	CNI_NAMESPACE(flags)
 	{
-		return imgui_img_ext;
+		CNI_VALUE_CONST_V(no_title_bar, ImGuiWindowFlags, ImGuiWindowFlags_NoTitleBar)
+		CNI_VALUE_CONST_V(no_resize, ImGuiWindowFlags, ImGuiWindowFlags_NoResize)
+		CNI_VALUE_CONST_V(no_move, ImGuiWindowFlags, ImGuiWindowFlags_NoMove)
+		CNI_VALUE_CONST_V(no_scroll_bar, ImGuiWindowFlags, ImGuiWindowFlags_NoScrollbar)
+		CNI_VALUE_CONST_V(no_collapse, ImGuiWindowFlags, ImGuiWindowFlags_NoCollapse)
+		CNI_VALUE_CONST_V(always_auto_resize, ImGuiWindowFlags, ImGuiWindowFlags_AlwaysAutoResize)
+		CNI_VALUE_CONST_V(no_saved_settings, ImGuiWindowFlags, ImGuiWindowFlags_NoSavedSettings)
+		CNI_VALUE_CONST_V(menu_bar, ImGuiWindowFlags, ImGuiWindowFlags_MenuBar)
+		CNI_VALUE_CONST_V(horizontal_scroll_bar, ImGuiWindowFlags, ImGuiWindowFlags_HorizontalScrollbar)
+		CNI_VALUE_CONST_V(unsaved_document, ImGuiTabItemFlags, ImGuiTabItemFlags_UnsavedDocument)
+		CNI_VALUE_CONST_V(set_selected, ImGuiTabItemFlags, ImGuiTabItemFlags_SetSelected)
 	}
-
-	template <>
-	constexpr const char *get_name_of_type<imgui_cs_ext::image_t>()
-	{
-		return "cs::imgui::image";
-	}
-} // namespace cs_impl
-
-void cs_extension_main(cs::name_space *ns)
-{
-	glfw_instance.reset(new imgui_cs::glfw_instance);
-	imgui_cs_ext::init(ns);
 }
+
+CNI_ENABLE_TYPE_EXT_V(application, cni_root_namespace::application_t, cs::imgui::application)
+CNI_ENABLE_TYPE_EXT_V(bmp_image, cni_root_namespace::image_t, cs::imgui::image)

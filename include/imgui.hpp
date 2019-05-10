@@ -21,11 +21,13 @@
 
 // Covariant Script Header
 #include <covscript/dll.hpp>
+#include <covscript/cni.hpp>
 
 namespace imgui_cs {
 	struct font {
-		const char* name;
-		const char* data;
-		font(const char* n, const char* d):name(n), data(d) {}
+		const char *name;
+		const char *data;
+
+		font(const char *n, const char *d) : name(n), data(d) {}
 	};
 }
