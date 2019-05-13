@@ -70,80 +70,39 @@ namespace imgui_cs {
 	};
 
 	class image final {
-		int width;
-		int height;
-		GLuint textureID;
-		unsigned char *data;
-
+		int m_width;
+		int m_height;
+		GLuint m_textureID;
+		unsigned char *m_data;
 	public:
-		image() = delete;
-
-		image(const image &) = delete;
-
-		image(image &&) noexcept = delete;
-
-		explicit image(const std::string &path)
+		image()=delete;
+		image(const image&)=delete;
+		image(image&&) noexcept=delete;
+		image(unsigned char *data, int width, int height):m_width(width), m_height(height), m_data(data)
 		{
-			unsigned char header[54];
-			unsigned int image_size;
-			FILE *file = fopen(path.c_str(), "rb");
-			if (!file)
-				throw cs::lang_error("Image could not be opened");
-			if (fread(header, 1, 54, file) != 54) {
-				fclose(file);
-				throw cs::lang_error("Not a correct BMP file");
-			}
-			if (header[0] != 'B' || header[1] != 'M') {
-				fclose(file);
-				throw cs::lang_error("Not a correct BMP file");
-			}
-			if (*(int *) &(header[0x1C]) != 24) {
-				fclose(file);
-				throw cs::lang_error("Not a 24-bit BMP file");
-			}
-			width = *(int *) &(header[0x12]);
-			height = *(int *) &(header[0x16]);
-			image_size = *(int *) &(header[0x22]);
-			if (image_size == 0)
-				image_size = width * height * 3;
-			data = new unsigned char[image_size];
-			if (fread(data, 1, image_size, file) != image_size)
-				throw cs::lang_error("Broken BMP file");
-			fclose(file);
-			unsigned char *reversed_data = new unsigned char[image_size];
-			int row_size = width * 3;
-			if (row_size % 4 != 0)
-				row_size += 4 - row_size % 4;
-			for (int y = 0; y < height; ++y)
-				for (int x = 0; x < row_size; ++x)
-					reversed_data[y * row_size + x] = data[(height - y - 1) * row_size + x];
-			std::swap(data, reversed_data);
-			delete[] reversed_data;
-			glGenTextures(1, &textureID);
-			glBindTexture(GL_TEXTURE_2D, textureID);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGR, GL_UNSIGNED_BYTE, data);
+			glGenTextures(1, &m_textureID);
+			glBindTexture(GL_TEXTURE_2D, m_textureID);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_width, m_height, 0, GL_BGR, GL_UNSIGNED_BYTE, m_data);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		}
-
 		~image()
 		{
-			delete[] data;
+			delete[] m_data;
 		}
-
 		int get_width() const
 		{
-			return width;
+			return m_width;
 		}
 
 		int get_height() const
 		{
-			return height;
+			return m_height;
 		}
 
 		ImTextureID get_texture_id() const
 		{
-			return reinterpret_cast<ImTextureID>(textureID);
+			return reinterpret_cast<ImTextureID>(m_textureID);
 		}
 	};
 } // namespace imgui_cs
@@ -257,14 +216,55 @@ CNI_ROOT_NAMESPACE {
 	}
 
 // ImGui Image
+	image_t make_image(unsigned char* data, number width, number height)
+	{
+		return std::make_shared<imgui_cs::image>(data, width, height);
+	}
+
+	CNI_CONST(make_image)
+
 	image_t load_bmp_image(const string &path)
 	{
-		return std::make_shared<imgui_cs::image>(path);
+		unsigned char header[54];
+		FILE *file = fopen(path.c_str(), "rb");
+		if (!file)
+			throw cs::lang_error("Image could not be opened");
+		if (fread(header, 1, 54, file) != 54) {
+			fclose(file);
+			throw cs::lang_error("Not a correct BMP file");
+		}
+		if (header[0] != 'B' || header[1] != 'M') {
+			fclose(file);
+			throw cs::lang_error("Not a correct BMP file");
+		}
+		if (*(int *) &(header[0x1C]) != 24) {
+			fclose(file);
+			throw cs::lang_error("Not a 24-bit BMP file");
+		}
+		int width = *(int *) &(header[0x12]);
+		int height = *(int *) &(header[0x16]);
+		int image_size = *(int *) &(header[0x22]);
+		if (image_size == 0)
+			image_size = width * height * 3;
+		unsigned char *data = new unsigned char[image_size];
+		if (fread(data, 1, image_size, file) != image_size)
+			throw cs::lang_error("Broken BMP file");
+		fclose(file);
+		unsigned char *reversed_data = new unsigned char[image_size];
+		int row_size = width * 3;
+		if (row_size % 4 != 0)
+			row_size += 4 - row_size % 4;
+		for (int y = 0; y < height; ++y)
+			for (int x = 0; x < row_size; ++x)
+				reversed_data[y * row_size + x] = data[(height - y - 1) * row_size + x];
+		std::swap(data, reversed_data);
+		delete[] reversed_data;
+		return std::make_shared<imgui_cs::image>(data, width, height);
 	}
 
 	CNI(load_bmp_image)
 
-	CNI_NAMESPACE(bmp_image)
+	CNI_NAMESPACE(image_type)
 	{
 		number get_width(const image_t &image) {
 			return image->get_width();
@@ -1425,4 +1425,4 @@ CNI_ROOT_NAMESPACE {
 }
 
 CNI_ENABLE_TYPE_EXT_V(application, cni_root_namespace::application_t, cs::imgui::application)
-CNI_ENABLE_TYPE_EXT_V(bmp_image, cni_root_namespace::image_t, cs::imgui::image)
+CNI_ENABLE_TYPE_EXT_V(image_type, cni_root_namespace::image_t, cs::imgui::image)
