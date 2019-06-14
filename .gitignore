@@ -48,3 +48,6 @@ imgui.ini
 .vscode/
 .idea/
 cmake-build-debug/
+
+# Garbage Files
+.DS_Store
