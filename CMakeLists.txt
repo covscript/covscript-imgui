@@ -10,6 +10,11 @@ if(DEFINED ENV{CS_DEV_PATH})
     link_directories($ENV{CS_DEV_PATH}/lib)
 endif()
 
+if(DEFINED ENV{CS_DEV_OUTPUT})
+    set(LIBRARY_OUTPUT_PATH $ENV{CS_DEV_OUTPUT})
+    set(EXECUTABLE_OUTPUT_PATH $ENV{CS_DEV_OUTPUT})
+endif()
+
 # Compiler Options
 set(CMAKE_CXX_STANDARD 14)
 
