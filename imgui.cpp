@@ -31,6 +31,8 @@
 
 // Other Headers
 
+#define IMGUI_IMPL_OPENGL_LOADER_GL3W
+
 #ifdef IMGUI_IMPL_GL2
 
 #include <imgui_gl2.hpp>
