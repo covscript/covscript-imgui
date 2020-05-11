@@ -5,15 +5,15 @@ include_directories(impl)
 include_directories(include)
 include_directories(include/imgui)
 
-if(DEFINED ENV{CS_DEV_PATH})
+if (DEFINED ENV{CS_DEV_PATH})
     include_directories($ENV{CS_DEV_PATH}/include)
     link_directories($ENV{CS_DEV_PATH}/lib)
-endif()
+endif ()
 
-if(DEFINED ENV{CS_DEV_OUTPUT})
+if (DEFINED ENV{CS_DEV_OUTPUT})
     set(LIBRARY_OUTPUT_PATH $ENV{CS_DEV_OUTPUT})
     set(EXECUTABLE_OUTPUT_PATH $ENV{CS_DEV_OUTPUT})
-endif()
+endif ()
 
 # Compiler Options
 set(CMAKE_CXX_STANDARD 14)
@@ -43,17 +43,17 @@ set(IMGUI_SOURCE_CODE
         src/imgui_draw.cpp
         src/imgui_widgets.cpp)
 
-add_library(imgui           STATIC  ${IMGUI_SOURCE_CODE})
-add_library(imgui_font_ext  SHARED  imgui_font.cpp)
-add_library(imgui_gl2_ext   SHARED  impl/imgui_impl_opengl2.cpp imgui.cpp)
-add_library(imgui_gl3_ext   SHARED  impl/imgui_impl_opengl3.cpp imgui.cpp)
+add_library(imgui STATIC ${IMGUI_SOURCE_CODE})
+add_library(imgui_font_ext SHARED imgui_font.cpp)
+add_library(imgui_gl2_ext SHARED impl/imgui_impl_opengl2.cpp imgui.cpp)
+add_library(imgui_gl3_ext SHARED impl/imgui_impl_opengl3.cpp imgui.cpp)
 
 target_compile_definitions(imgui PUBLIC IMGUI_IMPL_OPENGL_LOADER_GL3W)
 target_compile_definitions(imgui_gl2_ext PRIVATE IMGUI_IMPL_GL2)
 
-if(WIN32)
+if (WIN32)
     target_link_libraries(imgui glfw3 gdi32 opengl32)
-endif()
+endif ()
 
 if (UNIX)
     find_package(glfw3 REQUIRED)
@@ -65,10 +65,10 @@ if (UNIX)
         find_library(IOKIT_LIBS IOKit)
         find_library(COREVIDEO_LIBS CoreVideo)
         target_link_libraries(imgui glfw ${OPENGL_LIBS} ${COCOA_LIBS} ${IOKIT_LIBS} ${COREVIDEO_LIBS})
-    else ()    
+    else ()
         target_link_libraries(imgui glfw GL)
     endif ()
-endif()
+endif ()
 
 target_link_libraries(imgui_font_ext covscript imgui)
 target_link_libraries(imgui_gl2_ext covscript imgui)
