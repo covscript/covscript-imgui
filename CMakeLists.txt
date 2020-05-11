@@ -48,6 +48,7 @@ add_library(imgui_font_ext  SHARED  imgui_font.cpp)
 add_library(imgui_gl2_ext   SHARED  impl/imgui_impl_opengl2.cpp imgui.cpp)
 add_library(imgui_gl3_ext   SHARED  impl/imgui_impl_opengl3.cpp imgui.cpp)
 
+target_compile_definitions(imgui PUBLIC IMGUI_IMPL_OPENGL_LOADER_GL3W)
 target_compile_definitions(imgui_gl2_ext PRIVATE IMGUI_IMPL_GL2)
 
 if(WIN32)
