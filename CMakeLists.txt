@@ -41,7 +41,8 @@ set(IMGUI_SOURCE_CODE
         src/imgui.cpp
         src/imgui_demo.cpp
         src/imgui_draw.cpp
-        src/imgui_widgets.cpp)
+        src/imgui_widgets.cpp
+        src/imgui_tables.cpp)
 
 add_library(imgui STATIC ${IMGUI_SOURCE_CODE})
 add_library(imgui_font_ext SHARED imgui_font.cpp)
