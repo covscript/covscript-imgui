@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.4)
 
 project(covscript-imgui)
-include_directories(impl)
+include_directories(backends)
 include_directories(include)
 include_directories(include/imgui)
 
@@ -35,7 +35,7 @@ else ()
 endif ()
 
 set(IMGUI_SOURCE_CODE
-        impl/imgui_impl_glfw.cpp
+        backends/imgui_impl_glfw.cpp
         res/default_font.cpp
         src/gl3w.c
         src/imgui.cpp
@@ -46,8 +46,8 @@ set(IMGUI_SOURCE_CODE
 
 add_library(imgui STATIC ${IMGUI_SOURCE_CODE})
 add_library(imgui_font_ext SHARED imgui_font.cpp)
-add_library(imgui_gl2_ext SHARED impl/imgui_impl_opengl2.cpp imgui.cpp)
-add_library(imgui_gl3_ext SHARED impl/imgui_impl_opengl3.cpp imgui.cpp)
+add_library(imgui_gl2_ext SHARED backends/imgui_impl_opengl2.cpp imgui.cpp)
+add_library(imgui_gl3_ext SHARED backends/imgui_impl_opengl3.cpp imgui.cpp)
 
 target_compile_definitions(imgui PUBLIC IMGUI_IMPL_OPENGL_LOADER_GL3W)
 target_compile_definitions(imgui_gl2_ext PRIVATE IMGUI_IMPL_GL2)
