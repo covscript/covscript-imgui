@@ -280,6 +280,9 @@ CNI_ROOT_NAMESPACE {
 	}
 
 // ImGui Functions
+
+	CNI_V(get_time, ImGui::GetTime)
+
 	ImVec2 vec2(number a, number b)
 	{
 		return ImVec2(a, b);
@@ -287,12 +290,26 @@ CNI_ROOT_NAMESPACE {
 
 	CNI_CONST(vec2)
 
+	CNI_NAMESPACE(vec2_type)
+	{
+		CNI_VISITOR_V(x, [](const ImVec2& v){ return v.x; })
+		CNI_VISITOR_V(y, [](const ImVec2& v){ return v.y; })
+	}
+
 	ImVec4 vec4(number a, number b, number c, number d)
 	{
 		return ImVec4(a, b, c, d);
 	}
 
 	CNI_CONST(vec4)
+
+	CNI_NAMESPACE(vec4_type)
+	{
+		CNI_VISITOR_V(x, [](const ImVec4& v){ return v.x; })
+		CNI_VISITOR_V(y, [](const ImVec4& v){ return v.y; })
+		CNI_VISITOR_V(z, [](const ImVec4& v){ return v.z; })
+		CNI_VISITOR_V(w, [](const ImVec4& v){ return v.w; })
+	}
 
 	number get_framerate()
 	{
@@ -1426,3 +1443,5 @@ CNI_ROOT_NAMESPACE {
 
 CNI_ENABLE_TYPE_EXT_V(application, cni_root_namespace::application_t, cs::imgui::application)
 CNI_ENABLE_TYPE_EXT_V(image_type, cni_root_namespace::image_t, cs::imgui::image)
+CNI_ENABLE_TYPE_EXT_V(vec2_type, ImVec2, cs::imgui::vec2)
+CNI_ENABLE_TYPE_EXT_V(vec4_type, ImVec4, cs::imgui::vec4)
