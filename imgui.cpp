@@ -1130,7 +1130,7 @@ CNI_ROOT_NAMESPACE {
 // Focus, Activation
 	void set_scroll_here()
 	{
-		ImGui::SetScrollHere();
+		ImGui::SetScrollHereY();
 	}
 
 	CNI(set_scroll_here)
