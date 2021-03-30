@@ -1,0 +1,9 @@
+{
+    "Type": "Extension",
+    "Name": "imgui_font",
+    "Info": "ImGUI Font Extension",
+    "Author": "CovScript Organization",
+    "Version": "1.0.1",
+    "Target": "build/imports/imgui_font.cse",
+    "Dependencies": []
+}
