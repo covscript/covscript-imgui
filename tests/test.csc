@@ -52,7 +52,7 @@ while !app.is_closed()
             end
         end
         separator()
-        input_text_multiline("",texts,512)
+        input_text_multiline_s("",texts,512,{flags.password, flags.allow_tab})
         var pos={get_window_pos_x(),get_window_pos_y()}
         var size={get_window_width(),get_window_height()}
     end_window()

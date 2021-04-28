@@ -830,6 +830,19 @@ CNI_ROOT_NAMESPACE {
 
 	CNI(input_text)
 
+	void input_text_s(const string &str, string &text, number buff_size, const array &flags_arr)
+	{
+		imgui_cs::buffer<> buff(buff_size);
+		std::strcpy(buff.get(), text.c_str());
+		ImGuiInputTextFlags flags = 0;
+		for (auto &it : flags_arr)
+			flags |= it.const_val<ImGuiInputTextFlags>();
+		ImGui::InputText(str.c_str(), buff.get(), buff_size, flags);
+		text = buff.get();
+	}
+
+	CNI(input_text_s)
+
 	void input_text_hint(const string &str, const string &hint, string &text, number buff_size)
 	{
 		imgui_cs::buffer<> buff(buff_size);
@@ -840,6 +853,19 @@ CNI_ROOT_NAMESPACE {
 
 	CNI(input_text_hint)
 
+	void input_text_hint_s(const string &str, const string &hint, string &text, number buff_size, const array &flags_arr)
+	{
+		imgui_cs::buffer<> buff(buff_size);
+		std::strcpy(buff.get(), text.c_str());
+		ImGuiInputTextFlags flags = 0;
+		for (auto &it : flags_arr)
+			flags |= it.const_val<ImGuiInputTextFlags>();
+		ImGui::InputTextWithHint(str.c_str(), hint.c_str(), buff.get(), buff_size, flags);
+		text = buff.get();
+	}
+
+	CNI(input_text_hint_s)
+
 	void input_text_multiline(const string &str, string &text, number buff_size)
 	{
 		imgui_cs::buffer<> buff(buff_size);
@@ -849,6 +875,19 @@ CNI_ROOT_NAMESPACE {
 	}
 
 	CNI(input_text_multiline)
+
+	void input_text_multiline_s(const string &str, string &text, number buff_size, const array &flags_arr)
+	{
+		imgui_cs::buffer<> buff(buff_size);
+		std::strcpy(buff.get(), text.c_str());
+		ImGuiInputTextFlags flags = 0;
+		for (auto &it : flags_arr)
+			flags |= it.const_val<ImGuiInputTextFlags>();
+		ImGui::InputTextMultiline(str.c_str(), buff.get(), buff_size, ImVec2(0, 0), flags);
+		text = buff.get();
+	}
+
+	CNI(input_text_multiline_s)
 
 	void color_edit3(const string &str, ImVec4 &color)
 	{
@@ -1439,6 +1478,9 @@ CNI_ROOT_NAMESPACE {
 		CNI_VALUE_CONST_V(horizontal_scroll_bar, ImGuiWindowFlags, ImGuiWindowFlags_HorizontalScrollbar)
 		CNI_VALUE_CONST_V(unsaved_document, ImGuiTabItemFlags, ImGuiTabItemFlags_UnsavedDocument)
 		CNI_VALUE_CONST_V(set_selected, ImGuiTabItemFlags, ImGuiTabItemFlags_SetSelected)
+		CNI_VALUE_CONST_V(allow_tab, ImGuiInputTextFlags, ImGuiInputTextFlags_AllowTabInput)
+		CNI_VALUE_CONST_V(read_only, ImGuiInputTextFlags, ImGuiInputTextFlags_ReadOnly)
+		CNI_VALUE_CONST_V(password, ImGuiInputTextFlags, ImGuiInputTextFlags_Password)
 	}
 }
 
