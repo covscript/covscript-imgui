@@ -423,6 +423,30 @@ CNI_ROOT_NAMESPACE {
 
 	CNI(style_color_dark)
 
+	CNI_V(push_item_width, &ImGui::PushItemWidth)
+
+	CNI_V(pop_item_width, &ImGui::PopItemWidth)
+
+	CNI_V(set_next_item_width, &ImGui::SetNextItemWidth)
+
+	number get_item_width()
+	{
+		return ImGui::GetItemRectSize().x;
+	}
+
+	CNI(get_item_width)
+
+	ImVec2 calc_text_size(const string &text)
+	{
+		const char* txt_beg = text.c_str();
+		const char* txt_end = txt_beg + text.size();
+		return ImGui::CalcTextSize(txt_beg, txt_end, true);
+	}
+
+	CNI(calc_text_size)
+
+	CNI_V(get_window_content_region_width, &ImGui::GetWindowContentRegionWidth)
+
 // Windows
 	void set_next_window_pos(const ImVec2 &pos)
 	{
@@ -631,6 +655,13 @@ CNI_ROOT_NAMESPACE {
 
 	CNI(spacing)
 
+	void blank(number wid)
+	{
+		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + wid);
+	}
+
+	CNI(blank)
+
 	void indent()
 	{
 		ImGui::Indent();
@@ -709,6 +740,13 @@ CNI_ROOT_NAMESPACE {
 	}
 
 	CNI(button)
+
+	bool button_s(const string &str, const ImVec2 &size)
+	{
+		return ImGui::Button(str.c_str(), size);
+	}
+
+	CNI(button_s)
 
 	bool small_button(const string &str)
 	{
