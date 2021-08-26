@@ -1,0 +1,104 @@
+import imgui
+using imgui
+system.file.remove("./imgui.ini")
+#var app=fullscreen_application(0,"CovScript ImGUI Sandbox")
+var app=window_application(0.75*imgui.get_monitor_width(0),0.75*imgui.get_monitor_height(0),"CovScript ImGUI Sandbox")
+style_color_light()
+var window_opened=true
+var col=vec4(0.5,0.5,0.5,1)
+var radius=10
+var margin=20
+constant gravity=10
+constant air_drop=1
+constant delta_time=0.1
+constant mass=0.5
+constant size=0.01
+
+
+class ball_entity
+    var col=null
+    var speed_x=50
+    var speed_y=0
+    var posit_x=margin+radius
+    var posit_y=margin+radius
+    function run()
+        if posit_x<=get_window_pos_x()+margin+radius
+            if posit_x<get_window_pos_x()
+                speed_x=get_mouse_drag_delta_x()
+            else
+                speed_x=math.abs(speed_x)
+            end
+            posit_x=get_window_pos_x()+margin+radius
+        end
+        if posit_x>=get_window_pos_x()+get_window_width()-margin-radius
+            if posit_x>get_window_pos_x()+get_window_width()
+                speed_x=-get_mouse_drag_delta_x()
+            else
+                speed_x=-math.abs(speed_x)
+            end
+            posit_x=get_window_pos_x()+get_window_width()-margin-radius
+        end
+        if posit_y<=get_window_pos_y()+margin+radius
+            if posit_y<get_window_pos_y()
+                speed_y=get_mouse_drag_delta_y()
+            else
+                speed_y=math.abs(speed_y)
+            end
+            posit_y=get_window_pos_y()+margin+radius
+        end
+        if posit_y>=get_window_pos_y()+get_window_height()-margin-radius
+            if posit_y>get_window_pos_y()+get_window_height()
+                speed_y=-get_mouse_drag_delta_y()
+            else
+                speed_y=-math.abs(speed_y)
+            end
+            posit_y=get_window_pos_y()+get_window_height()-margin-radius
+        end
+        var ax=0
+        var ay=0
+        if (speed_x>0)
+            ax=ax-(air_drop*size*speed_x)/mass
+        end
+        if (speed_y>0)
+            ay=(mass*gravity-air_drop*size*speed_y)/mass
+        end
+        if (speed_y==0)
+            ay=(mass*gravity)/mass
+        end
+        if (speed_y<0)
+            ay=(mass*gravity+math.abs(air_drop*size*speed_y))/mass
+        end
+        posit_x=posit_x+speed_x*delta_time+0.5*ax*delta_time^2
+        posit_y=posit_y+speed_y*delta_time+0.5*ay*delta_time^2
+        speed_x=speed_x+ax*delta_time
+        speed_y=speed_y+ay*delta_time
+        add_circle_filled(vec2(posit_x,posit_y),radius,col,360)
+    end
+end
+
+var ball_list=new array
+
+while !app.is_closed()
+    app.prepare()
+    begin_window("Sandbox",window_opened,{flags.no_collapse,flags.no_resize})
+        if !window_opened
+            break
+        end
+        set_window_size(vec2(app.get_window_width()/2,app.get_window_height()/2))
+        if tree_node("Property")
+            color_edit4("Ball Color",col)
+            if button("Add a ball")
+                var ball=new ball_entity
+                ball.col=col
+                ball.posit_x+=get_window_pos_x()
+                ball.posit_y+=get_window_pos_y()
+                ball_list.push_back(move(ball))
+            end
+            tree_pop()
+        end
+        foreach it in ball_list
+            it.run()
+        end
+    end_window()
+    app.render()
+end

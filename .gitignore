@@ -51,3 +51,6 @@ cmake-build-debug/
 
 # Garbage Files
 .DS_Store
+
+# ECS Garbage
+.ecs_output/
