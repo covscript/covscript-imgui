@@ -1,23 +1,33 @@
-import imgui
-using imgui
+import imgui.*
+
+# Init ImGUI
 system.file.remove("./imgui.ini")
 #var app=fullscreen_application(0,"CovScript ImGUI Sandbox")
 var app=window_application(0.75*imgui.get_monitor_width(0),0.75*imgui.get_monitor_height(0),"CovScript ImGUI Sandbox")
 style_color_light()
-var window_opened=true
-var col=vec4(0.5,0.5,0.5,1)
-var radius=10
-var margin=20
-constant gravity=10
-constant air_drop=1
-constant delta_time=0.1
-constant mass=0.5
-constant size=0.01
 
+# Basic Variables
+var window_opened=true,
+    col=vec4(0.5,0.5,0.5,1),
+    radius=10,
+    margin=20
+
+# Constants
+constant
+    gravity=10,
+    air_drop=1,
+    delta_time=0.1,
+    mass=0.5,
+    size=0.01
+
+# Removal of static balls
+var remove_static_balls=false,
+    remove_speed_threshold=1,
+    remove_attitude_threshold=radius
 
 class ball_entity
     var col=null
-    var speed_x=50
+    var speed_x=math.rand(40,80)
     var speed_y=0
     var posit_x=margin+radius
     var posit_y=margin+radius
@@ -54,20 +64,8 @@ class ball_entity
             end
             posit_y=get_window_pos_y()+get_window_height()-margin-radius
         end
-        var ax=0
-        var ay=0
-        if (speed_x>0)
-            ax=ax-(air_drop*size*speed_x)/mass
-        end
-        if (speed_y>0)
-            ay=(mass*gravity-air_drop*size*speed_y)/mass
-        end
-        if (speed_y==0)
-            ay=(mass*gravity)/mass
-        end
-        if (speed_y<0)
-            ay=(mass*gravity+math.abs(air_drop*size*speed_y))/mass
-        end
+        var ax=-(air_drop*size*speed_x)/mass
+        var ay=(mass*gravity-2*air_drop*size*speed_y)/mass
         posit_x=posit_x+speed_x*delta_time+0.5*ax*delta_time^2
         posit_y=posit_y+speed_y*delta_time+0.5*ay*delta_time^2
         speed_x=speed_x+ax*delta_time
@@ -76,7 +74,7 @@ class ball_entity
     end
 end
 
-var ball_list=new array
+var ball_list=new list
 
 while !app.is_closed()
     app.prepare()
@@ -94,10 +92,28 @@ while !app.is_closed()
                 ball.posit_y+=get_window_pos_y()
                 ball_list.push_back(move(ball))
             end
+            same_line()
+            if button("Reset")
+                ball_list.clear()
+            end
+            same_line()
+            text("Ball count: "+ball_list.size)
+            check_box("Remove static balls", remove_static_balls)
             tree_pop()
         end
-        foreach it in ball_list
-            it.run()
+        if remove_static_balls
+            for it=ball_list.begin; it!=ball_list.end; null
+                if it.data.posit_y>get_window_pos_y()+get_window_height()-margin-radius-remove_attitude_threshold &&
+                    math.abs(it.data.speed_x)<remove_speed_threshold &&
+                        math.abs(it.data.speed_y)<remove_speed_threshold
+                    it=ball_list.erase(it)
+                else
+                    it.data.run()
+                    it.next()
+                end
+            end
+        else
+            foreach it in ball_list do it.run()
         end
     end_window()
     app.render()
