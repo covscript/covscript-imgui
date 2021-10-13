@@ -3,7 +3,7 @@
     "Name": "imgui_gl2",
     "Info": "ImGUI OpenGL2 Extension",
     "Author": "CovScript Organization",
-    "Version": "1.0.4",
+    "Version": "1.85_v1",
     "Target": "build/imports/imgui_gl2.cse",
     "Dependencies": []
 }
