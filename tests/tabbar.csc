@@ -62,7 +62,7 @@ while !app.is_closed()
             tab.title=title
             foreach it in tab_list
                 if title==it.title
-                    tab.title+=tab_list.size()
+                    tab.title+=tab_list.size
                 end
             end
             if unsaved
