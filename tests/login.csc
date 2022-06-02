@@ -4,7 +4,7 @@ using imgui
 system.file.remove("./imgui.ini")
 var app = window_application(0.75*imgui.get_monitor_width(0), 0.75*imgui.get_monitor_height(0), "CovScript ImGUI测试程序")
 var font = add_font_extend_cn(imgui_font.source_han_sans, 16)
-var img = load_bmp_image("./res/covariant_script_wide.bmp")
+var img = load_image("./res/covariant_script_wide.bmp")
 var window_opened = true
 var username = new string
 var password = new string

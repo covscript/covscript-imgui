@@ -23,24 +23,26 @@
 #if defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
 #define IMGUI_IMPL_WIN32
 #endif
-#include <GL/gl3w.h>
+
 #include <imgui.hpp>
 
-// ImGUI Common Header
+// Common Header
 #include <imgui.h>
 #include <imgui_internal.h>
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
 
 #ifdef IMGUI_IMPL_WIN32
 
 #include <windows.h>
-#include <windowsx.h> // GET_X_LPARAM(), GET_Y_LPARAM()
+#include <D3dx9tex.h>
 #include <tchar.h>
 #include <dwmapi.h>
 #include <imgui_win32.hpp>
 
 #else
 // GL3W/GLFW3
-
+#include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
 
 // Other Headers
@@ -83,27 +85,26 @@ namespace imgui_cs {
 			return buff;
 		}
 	};
-
 	class image final {
 		int m_width;
 		int m_height;
-		GLuint m_textureID;
+		LPDIRECT3DTEXTURE9 m_textureID;
 		unsigned char *m_data;
 	public:
 		image()=delete;
 		image(const image&)=delete;
 		image(image&&) noexcept=delete;
-		image(unsigned char *data, int width, int height):m_width(width), m_height(height), m_data(data)
+		image(const std::string& path)
 		{
-			glGenTextures(1, &m_textureID);
-			glBindTexture(GL_TEXTURE_2D, m_textureID);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_width, m_height, 0, GL_BGR, GL_UNSIGNED_BYTE, m_data);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			int n;
+			if (!stbi_info(path.c_str(), &m_width, &m_height, &n))
+				throw cs::lang_error("Read Image Info Error!");
+			if (D3DXCreateTextureFromFile(ImGui_ImplDX9_Getpd3dDevice(), path.c_str(), &m_textureID) != D3D_OK)
+				throw cs::lang_error("Open Image Error!");
 		}
 		~image()
 		{
-			delete[] m_data;
+			m_textureID->Release();
 		}
 		int get_width() const
 		{
@@ -120,6 +121,45 @@ namespace imgui_cs {
 			return reinterpret_cast<ImTextureID>(m_textureID);
 		}
 	};
+	#ifndef IMGUI_IMPL_WIN32
+	class image final {
+		int m_width;
+		int m_height;
+		GLuint m_textureID;
+		unsigned char *m_data;
+	public:
+		image()=delete;
+		image(const image&)=delete;
+		image(image&&) noexcept=delete;
+		image(unsigned char *data, int width, int height):m_width(width), m_height(height), m_data(data)
+		{
+			m_data = stbi_load(path.c_str(), &m_width, &m_height, nullptr, 3);
+			glGenTextures(1, &m_textureID);
+			glBindTexture(GL_TEXTURE_2D, m_textureID);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_width, m_height, 0, GL_RGB, GL_UNSIGNED_BYTE, m_data);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		}
+		~image()
+		{
+			stbi_image_free(m_data);
+		}
+		int get_width() const
+		{
+			return m_width;
+		}
+
+		int get_height() const
+		{
+			return m_height;
+		}
+
+		ImTextureID get_texture_id() const
+		{
+			return reinterpret_cast<ImTextureID>(m_textureID);
+		}
+	};
+	#endif
 } // namespace imgui_cs
 
 #ifndef IMGUI_IMPL_WIN32
@@ -253,53 +293,12 @@ CNI_ROOT_NAMESPACE {
 	}
 
 // ImGui Image
-	image_t make_image(unsigned char* data, number width, number height)
+	image_t load_image(const string &path)
 	{
-		return std::make_shared<imgui_cs::image>(data, width, height);
+		return std::make_shared<imgui_cs::image>(path);
 	}
 
-	CNI_CONST(make_image)
-
-	image_t load_bmp_image(const string &path)
-	{
-		unsigned char header[54];
-		FILE *file = fopen(path.c_str(), "rb");
-		if (!file)
-			throw cs::lang_error("Image could not be opened");
-		if (fread(header, 1, 54, file) != 54) {
-			fclose(file);
-			throw cs::lang_error("Not a correct BMP file");
-		}
-		if (header[0] != 'B' || header[1] != 'M') {
-			fclose(file);
-			throw cs::lang_error("Not a correct BMP file");
-		}
-		if (*(int *) &(header[0x1C]) != 24) {
-			fclose(file);
-			throw cs::lang_error("Not a 24-bit BMP file");
-		}
-		int width = *(int *) &(header[0x12]);
-		int height = *(int *) &(header[0x16]);
-		int image_size = *(int *) &(header[0x22]);
-		if (image_size == 0)
-			image_size = width * height * 3;
-		unsigned char *data = new unsigned char[image_size];
-		if (fread(data, 1, image_size, file) != image_size)
-			throw cs::lang_error("Broken BMP file");
-		fclose(file);
-		unsigned char *reversed_data = new unsigned char[image_size];
-		int row_size = width * 3;
-		if (row_size % 4 != 0)
-			row_size += 4 - row_size % 4;
-		for (int y = 0; y < height; ++y)
-			for (int x = 0; x < row_size; ++x)
-				reversed_data[y * row_size + x] = data[(height - y - 1) * row_size + x];
-		std::swap(data, reversed_data);
-		delete[] reversed_data;
-		return std::make_shared<imgui_cs::image>(data, width, height);
-	}
-
-	CNI(load_bmp_image)
+	CNI(load_image)
 
 	CNI_NAMESPACE(image_type)
 	{

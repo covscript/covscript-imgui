@@ -68,7 +68,7 @@ else ()
 endif ()
 
 if (WIN32)
-    target_link_libraries(imgui d3d9 gdi32 opengl32 imm32 dwmapi)
+    target_link_libraries(imgui d3d9 d3dx9 gdi32 opengl32 imm32 dwmapi)
 endif ()
 
 if (UNIX)

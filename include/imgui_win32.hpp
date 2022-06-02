@@ -20,6 +20,23 @@
 * Github:  https://github.com/mikecovlee
 * Website: http://covscript.org.cn
 */
+
+// DirectX data
+struct ImGui_ImplDX9_Data_Impl
+{
+    LPDIRECT3DDEVICE9           pd3dDevice;
+    LPDIRECT3DVERTEXBUFFER9     pVB;
+    LPDIRECT3DINDEXBUFFER9      pIB;
+    LPDIRECT3DTEXTURE9          FontTexture;
+    int                         VertexBufferSize;
+    int                         IndexBufferSize;
+};
+
+static LPDIRECT3DDEVICE9 ImGui_ImplDX9_Getpd3dDevice()
+{
+    return ImGui::GetCurrentContext() ? reinterpret_cast<ImGui_ImplDX9_Data_Impl*>(ImGui::GetIO().BackendRendererUserData)->pd3dDevice : NULL;
+}
+
 #include <imgui_impl_dx9.h>
 #include <imgui_impl_win32.h>
 #include <d3d9.h>
