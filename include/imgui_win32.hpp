@@ -25,45 +25,46 @@
 #include <d3d9.h>
 #include <tchar.h>
 
+// Data
+static LPDIRECT3D9              g_pD3D = NULL;
+static LPDIRECT3DDEVICE9        g_pd3dDevice = NULL;
+static D3DPRESENT_PARAMETERS    g_d3dpp = {};
+// Forward declarations of helper functions
+static bool CreateDeviceD3D(HWND hWnd);
+static void CleanupDeviceD3D();
+static void ResetDevice();
+static LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 // Forward declare message handler from imgui_impl_win32.cpp
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 namespace imgui_cs {
 	const char *get_default_font_data();
 
+	RECT GetScreenRect(int screen)
+	{
+		DISPLAY_DEVICEW device;
+		device.cb = sizeof(device);
+		BOOL result = EnumDisplayDevicesW(NULL, screen, &device, 0);
+
+		DEVMODEW device_mode;
+		device_mode.dmSize = sizeof(device_mode);
+		device_mode.dmDriverExtra = 0;
+		result = EnumDisplaySettingsExW(device.DeviceName, ENUM_CURRENT_SETTINGS, &device_mode, 0);
+
+		int x = device_mode.dmPosition.x;
+		int y = device_mode.dmPosition.y;
+		int width = device_mode.dmPelsWidth;
+		int height = device_mode.dmPelsHeight;
+
+		return { x, y, x + width, y + height };
+	}
+
 	class application final {
-		// Data
-		static LPDIRECT3D9              g_pD3D = NULL;
-		static LPDIRECT3DDEVICE9        g_pd3dDevice = NULL;
-		static D3DPRESENT_PARAMETERS    g_d3dpp = {};
-		// Forward declarations of helper functions
-		static bool CreateDeviceD3D(HWND hWnd);
-		static void CleanupDeviceD3D();
-		static void ResetDevice();
-		static LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
 		// Application Parameters
 		ImVec4 bg_color = {1.0f, 1.0f, 1.0f, 1.0f};
 		WNDCLASSEX wc;
 		HWND hwnd;
-
-		RECT GetScreenRect(int screen)
-		{
-			DISPLAY_DEVICEW device;
-			device.cb = sizeof(device);
-			BOOL result = EnumDisplayDevicesW(NULL, screen, &device, 0);
-
-			DEVMODEW device_mode;
-			device_mode.dmSize = sizeof(device_mode);
-			device_mode.dmDriverExtra = 0;
-			result = EnumDisplaySettingsExW(device.DeviceName, ENUM_CURRENT_SETTINGS, &device_mode, 0);
-
-			int x = device_mode.dmPosition.x;
-			int y = device_mode.dmPosition.y;
-			int width = device_mode.dmPelsWidth;
-			int height = device_mode.dmPelsHeight;
-
-			return { x, y, x + width, y + height };
-		}
 
 		void init()
 		{
@@ -71,7 +72,7 @@ namespace imgui_cs {
 			if (!CreateDeviceD3D(hwnd)) {
 				CleanupDeviceD3D();
 				::UnregisterClass(wc.lpszClassName, wc.hInstance);
-				return 1;
+				throw cs::lang_error("Failed to initialize DX9 loader.");
 			}
 
 			// Show the window
@@ -103,17 +104,17 @@ namespace imgui_cs {
 			if (monitor_id >= count)
 				throw cs::lang_error("Monitor does not exist.");
 			RECT size = GetScreenRect(monitor_id);
-			wc = {sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, _T(titlr.c_str()), NULL};
+			wc = {sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, _T(title.c_str()), NULL};
 			::RegisterClassEx(&wc);
-			hwnd = ::CreateWindow(wc.lpszClassName, _T(titlr.c_str()), WS_BORDER, size[0], size[1], size[2], size[3], NULL, NULL, wc.hInstance, NULL);
+			hwnd = ::CreateWindow(wc.lpszClassName, _T(title.c_str()), WS_BORDER, size.left, size.top, size.right, size.bottom, NULL, NULL, wc.hInstance, NULL);
 			init();
 		}
 
 		application(std::size_t width, std::size_t height, const std::string &title)
 		{
-			wc = {sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, _T(titlr.c_str()), NULL};
+			wc = {sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, _T(title.c_str()), NULL};
 			::RegisterClassEx(&wc);
-			hwnd = ::CreateWindow(wc.lpszClassName, _T(titlr.c_str()), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, width, height, NULL, NULL, wc.hInstance, NULL);
+			hwnd = ::CreateWindow(wc.lpszClassName, _T(title.c_str()), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, width, height, NULL, NULL, wc.hInstance, NULL);
 			init();
 		}
 
@@ -129,21 +130,21 @@ namespace imgui_cs {
 
 		int get_window_width()
 		{
-            RECT size;
+			RECT size;
 			GetWindowRect(hwnd, &size);
-            return size[2] - size[0];
+			return size.right - size.left;
 		}
 
 		int get_window_height()
 		{
 			RECT size;
 			GetWindowRect(hwnd, &size);
-            return size[3] - size[1];
+			return size.bottom - size.top;
 		}
 
 		void set_window_size(int width, int height)
 		{
-            SetWindowPos(hwnd, HWND_TOP, 0, 0, width, height, SWP_NOMOVE);
+			SetWindowPos(hwnd, HWND_TOP, 0, 0, width, height, SWP_NOMOVE);
 		}
 
 		void set_window_title(const std::string &str)
@@ -197,72 +198,72 @@ namespace imgui_cs {
 				ResetDevice();
 		}
 	};
+}
 
 // Helper functions
 
-	bool application::CreateDeviceD3D(HWND hWnd)
-	{
-		if ((g_pD3D = Direct3DCreate9(D3D_SDK_VERSION)) == NULL)
-			return false;
+bool CreateDeviceD3D(HWND hWnd)
+{
+	if ((g_pD3D = Direct3DCreate9(D3D_SDK_VERSION)) == NULL)
+		return false;
 
-		// Create the D3DDevice
-		ZeroMemory(&g_d3dpp, sizeof(g_d3dpp));
-		g_d3dpp.Windowed = TRUE;
-		g_d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;
-		g_d3dpp.BackBufferFormat = D3DFMT_UNKNOWN; // Need to use an explicit format with alpha if needing per-pixel alpha composition.
-		g_d3dpp.EnableAutoDepthStencil = TRUE;
-		g_d3dpp.AutoDepthStencilFormat = D3DFMT_D16;
-		g_d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_ONE;           // Present with vsync
-		//g_d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;   // Present without vsync, maximum unthrottled framerate
-		if (g_pD3D->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hWnd, D3DCREATE_HARDWARE_VERTEXPROCESSING, &g_d3dpp, &g_pd3dDevice) < 0)
-			return false;
+	// Create the D3DDevice
+	ZeroMemory(&g_d3dpp, sizeof(g_d3dpp));
+	g_d3dpp.Windowed = TRUE;
+	g_d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;
+	g_d3dpp.BackBufferFormat = D3DFMT_UNKNOWN; // Need to use an explicit format with alpha if needing per-pixel alpha composition.
+	g_d3dpp.EnableAutoDepthStencil = TRUE;
+	g_d3dpp.AutoDepthStencilFormat = D3DFMT_D16;
+	g_d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_ONE;           // Present with vsync
+	//g_d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;   // Present without vsync, maximum unthrottled framerate
+	if (g_pD3D->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hWnd, D3DCREATE_HARDWARE_VERTEXPROCESSING, &g_d3dpp, &g_pd3dDevice) < 0)
+		return false;
 
-		return true;
+	return true;
+}
+
+void CleanupDeviceD3D()
+{
+	if (g_pd3dDevice) {
+		g_pd3dDevice->Release();
+		g_pd3dDevice = NULL;
 	}
-
-	void application::CleanupDeviceD3D()
-	{
-		if (g_pd3dDevice) {
-			g_pd3dDevice->Release();
-			g_pd3dDevice = NULL;
-		}
-		if (g_pD3D) {
-			g_pD3D->Release();
-			g_pD3D = NULL;
-		}
+	if (g_pD3D) {
+		g_pD3D->Release();
+		g_pD3D = NULL;
 	}
+}
 
-	void application::ResetDevice()
-	{
-		ImGui_ImplDX9_InvalidateDeviceObjects();
-		HRESULT hr = g_pd3dDevice->Reset(&g_d3dpp);
-		if (hr == D3DERR_INVALIDCALL)
-			IM_ASSERT(0);
-		ImGui_ImplDX9_CreateDeviceObjects();
-	}
+void ResetDevice()
+{
+	ImGui_ImplDX9_InvalidateDeviceObjects();
+	HRESULT hr = g_pd3dDevice->Reset(&g_d3dpp);
+	if (hr == D3DERR_INVALIDCALL)
+		IM_ASSERT(0);
+	ImGui_ImplDX9_CreateDeviceObjects();
+}
 
 // Win32 message handler
-	LRESULT WINAPI application::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
-	{
-		if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
-			return true;
+LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
+		return true;
 
-		switch (msg) {
-		case WM_SIZE:
-			if (g_pd3dDevice != NULL && wParam != SIZE_MINIMIZED) {
-				g_d3dpp.BackBufferWidth = LOWORD(lParam);
-				g_d3dpp.BackBufferHeight = HIWORD(lParam);
-				ResetDevice();
-			}
-			return 0;
-		case WM_SYSCOMMAND:
-			if ((wParam & 0xfff0) == SC_KEYMENU) // Disable ALT application menu
-				return 0;
-			break;
-		case WM_DESTROY:
-			::PostQuitMessage(0);
-			return 0;
+	switch (msg) {
+	case WM_SIZE:
+		if (g_pd3dDevice != NULL && wParam != SIZE_MINIMIZED) {
+			g_d3dpp.BackBufferWidth = LOWORD(lParam);
+			g_d3dpp.BackBufferHeight = HIWORD(lParam);
+			ResetDevice();
 		}
-		return ::DefWindowProc(hWnd, msg, wParam, lParam);
+		return 0;
+	case WM_SYSCOMMAND:
+		if ((wParam & 0xfff0) == SC_KEYMENU) // Disable ALT application menu
+			return 0;
+		break;
+	case WM_DESTROY:
+		::PostQuitMessage(0);
+		return 0;
 	}
+	return ::DefWindowProc(hWnd, msg, wParam, lParam);
 }

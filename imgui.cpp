@@ -23,7 +23,7 @@
 #if defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
 #define IMGUI_IMPL_WIN32
 #endif
-
+#include <GL/gl3w.h>
 #include <imgui.hpp>
 
 // ImGUI Common Header
@@ -40,7 +40,7 @@
 
 #else
 // GL3W/GLFW3
-#include <GL/gl3w.h>
+
 #include <GLFW/glfw3.h>
 
 // Other Headers
@@ -122,8 +122,10 @@ namespace imgui_cs {
 	};
 } // namespace imgui_cs
 
+#ifndef IMGUI_IMPL_WIN32
 // GLFW Instance
 static imgui_cs::glfw_instance glfw_instance;
+#endif
 
 CNI_ROOT_NAMESPACE {
 	using namespace cs;
@@ -133,33 +135,53 @@ CNI_ROOT_NAMESPACE {
 // GLFW Functions
 	number get_monitor_count()
 	{
+#ifdef IMGUI_IMPL_WIN32
+		return GetSystemMetrics(SM_CMONITORS);
+#else
 		int count = 0;
 		glfwGetMonitors(&count);
 		return count;
+#endif
 	}
 
 	CNI(get_monitor_count)
 
 	number get_monitor_width(number monitor_id)
 	{
+#ifdef IMGUI_IMPL_WIN32
+		int count = GetSystemMetrics(SM_CMONITORS);
+		if (monitor_id >= count)
+			throw cs::lang_error("Monitor does not exist.");
+		RECT size = imgui_cs::GetScreenRect(monitor_id);
+		return size.right - size.left;
+#else
 		int count = 0;
 		GLFWmonitor **monitors = glfwGetMonitors(&count);
 		if (monitor_id >= count)
 			throw cs::lang_error("Monitor does not exist.");
 		const GLFWvidmode *vidmode = glfwGetVideoMode(monitors[static_cast<std::size_t>(monitor_id)]);
 		return vidmode->width;
+#endif
 	}
 
 	CNI(get_monitor_width)
 
 	number get_monitor_height(number monitor_id)
 	{
+#ifdef IMGUI_IMPL_WIN32
+		int count = GetSystemMetrics(SM_CMONITORS);
+		if (monitor_id >= count)
+			throw cs::lang_error("Monitor does not exist.");
+		RECT size = imgui_cs::GetScreenRect(monitor_id);
+		return size.bottom - size.top;
+#else
 		int count = 0;
 		GLFWmonitor **monitors = glfwGetMonitors(&count);
 		if (monitor_id >= count)
 			throw cs::lang_error("Monitor does not exist.");
 		const GLFWvidmode *vidmode = glfwGetVideoMode(monitors[static_cast<std::size_t>(monitor_id)]);
-		return vidmode->height;
+		return vidmode->width;
+#endif
 	}
 
 	CNI(get_monitor_height)
@@ -307,8 +329,12 @@ CNI_ROOT_NAMESPACE {
 
 	CNI_NAMESPACE(vec2_type)
 	{
-		CNI_VISITOR_V(x, [](const ImVec2& v){ return v.x; })
-		CNI_VISITOR_V(y, [](const ImVec2& v){ return v.y; })
+		CNI_VISITOR_V(x, [](const ImVec2& v) {
+			return v.x;
+		})
+		CNI_VISITOR_V(y, [](const ImVec2& v) {
+			return v.y;
+		})
 	}
 
 	ImVec4 vec4(number a, number b, number c, number d)
@@ -320,10 +346,18 @@ CNI_ROOT_NAMESPACE {
 
 	CNI_NAMESPACE(vec4_type)
 	{
-		CNI_VISITOR_V(x, [](const ImVec4& v){ return v.x; })
-		CNI_VISITOR_V(y, [](const ImVec4& v){ return v.y; })
-		CNI_VISITOR_V(z, [](const ImVec4& v){ return v.z; })
-		CNI_VISITOR_V(w, [](const ImVec4& v){ return v.w; })
+		CNI_VISITOR_V(x, [](const ImVec4& v) {
+			return v.x;
+		})
+		CNI_VISITOR_V(y, [](const ImVec4& v) {
+			return v.y;
+		})
+		CNI_VISITOR_V(z, [](const ImVec4& v) {
+			return v.z;
+		})
+		CNI_VISITOR_V(w, [](const ImVec4& v) {
+			return v.w;
+		})
 	}
 
 	number get_framerate()
