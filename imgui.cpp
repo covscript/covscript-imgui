@@ -20,12 +20,25 @@
 * Website: http://covscript.org.cn
 */
 
+#if defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
+#define IMGUI_IMPL_WIN32
+#endif
+
 #include <imgui.hpp>
 
 // ImGUI Common Header
 #include <imgui.h>
 #include <imgui_internal.h>
 
+#ifdef IMGUI_IMPL_WIN32
+
+#include <windows.h>
+#include <windowsx.h> // GET_X_LPARAM(), GET_Y_LPARAM()
+#include <tchar.h>
+#include <dwmapi.h>
+#include <imgui_win32.hpp>
+
+#else
 // GL3W/GLFW3
 #include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
@@ -40,6 +53,7 @@
 
 #include <imgui_gl3.hpp>
 
+#endif
 #endif
 
 namespace imgui_cs {

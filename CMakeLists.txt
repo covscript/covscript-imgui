@@ -34,6 +34,17 @@ else ()
     set(CMAKE_CXX_FLAGS "-fPIC -O3")
 endif ()
 
+if (WIN32)
+set(IMGUI_SOURCE_CODE
+        backends/imgui_impl_win32.cpp
+        res/default_font.cpp
+        src/gl3w.c
+        src/imgui.cpp
+        src/imgui_demo.cpp
+        src/imgui_draw.cpp
+        src/imgui_widgets.cpp
+        src/imgui_tables.cpp)
+else ()
 set(IMGUI_SOURCE_CODE
         backends/imgui_impl_glfw.cpp
         res/default_font.cpp
@@ -43,17 +54,21 @@ set(IMGUI_SOURCE_CODE
         src/imgui_draw.cpp
         src/imgui_widgets.cpp
         src/imgui_tables.cpp)
+endif ()
 
 add_library(imgui STATIC ${IMGUI_SOURCE_CODE})
 add_library(imgui_font_ext SHARED imgui_font.cpp)
-add_library(imgui_gl2_ext SHARED backends/imgui_impl_opengl2.cpp imgui.cpp)
-add_library(imgui_gl3_ext SHARED backends/imgui_impl_opengl3.cpp imgui.cpp)
-
-target_compile_definitions(imgui PUBLIC IMGUI_IMPL_OPENGL_LOADER_GL3W)
-target_compile_definitions(imgui_gl2_ext PRIVATE IMGUI_IMPL_GL2)
+if (WIN32)
+    add_library(imgui_ext SHARED backends/imgui_impl_dx9.cpp imgui.cpp)
+else ()
+    #add_library(imgui_gl2_ext SHARED backends/imgui_impl_opengl2.cpp imgui.cpp)
+    add_library(imgui_ext SHARED backends/imgui_impl_opengl3.cpp imgui.cpp)
+    target_compile_definitions(imgui PUBLIC IMGUI_IMPL_OPENGL_LOADER_GL3W)
+    target_compile_definitions(imgui_gl2_ext PRIVATE IMGUI_IMPL_GL2)
+endif ()
 
 if (WIN32)
-    target_link_libraries(imgui glfw3 gdi32 opengl32 imm32)
+    target_link_libraries(imgui_ext d3d9 gdi32 dwmapi)
 endif ()
 
 if (UNIX)
@@ -65,24 +80,19 @@ if (UNIX)
         find_library(COCOA_LIBS Cocoa)
         find_library(IOKIT_LIBS IOKit)
         find_library(COREVIDEO_LIBS CoreVideo)
-        target_link_libraries(imgui glfw ${OPENGL_LIBS} ${COCOA_LIBS} ${IOKIT_LIBS} ${COREVIDEO_LIBS})
+        target_link_libraries(imgui_ext glfw ${OPENGL_LIBS} ${COCOA_LIBS} ${IOKIT_LIBS} ${COREVIDEO_LIBS})
     else ()
-        target_link_libraries(imgui glfw GL)
+        target_link_libraries(imgui_ext glfw GL)
     endif ()
 endif ()
 
 target_link_libraries(imgui_font_ext covscript imgui)
-target_link_libraries(imgui_gl2_ext covscript imgui)
-target_link_libraries(imgui_gl3_ext covscript imgui)
+target_link_libraries(imgui_ext covscript imgui)
 
 set_target_properties(imgui_font_ext PROPERTIES OUTPUT_NAME imgui_font)
 set_target_properties(imgui_font_ext PROPERTIES PREFIX "")
 set_target_properties(imgui_font_ext PROPERTIES SUFFIX ".cse")
 
-set_target_properties(imgui_gl2_ext PROPERTIES OUTPUT_NAME imgui_gl2)
-set_target_properties(imgui_gl2_ext PROPERTIES PREFIX "")
-set_target_properties(imgui_gl2_ext PROPERTIES SUFFIX ".cse")
-
-set_target_properties(imgui_gl3_ext PROPERTIES OUTPUT_NAME imgui)
-set_target_properties(imgui_gl3_ext PROPERTIES PREFIX "")
-set_target_properties(imgui_gl3_ext PROPERTIES SUFFIX ".cse")
+set_target_properties(imgui_ext PROPERTIES OUTPUT_NAME imgui)
+set_target_properties(imgui_ext PROPERTIES PREFIX "")
+set_target_properties(imgui_ext PROPERTIES SUFFIX ".cse")
