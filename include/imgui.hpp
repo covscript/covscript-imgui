@@ -32,4 +32,6 @@ namespace imgui_cs {
 
 		font(const char *n, const char *d) : name(n), data(d) {}
 	};
+
+	const char *get_default_font_data();
 }

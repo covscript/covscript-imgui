@@ -29,32 +29,18 @@
 // Common Header
 #include <imgui.h>
 #include <imgui_internal.h>
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
 
 #ifdef IMGUI_IMPL_WIN32
-
-#include <windows.h>
-#include <D3dx9tex.h>
-#include <tchar.h>
-#include <dwmapi.h>
-#include <imgui_win32.hpp>
-
+#ifdef IMGUI_IMPL_DX9
+#include <imgui_dx9_impl.hpp>
 #else
-// GL3W/GLFW3
-#include <GL/gl3w.h>
-#include <GLFW/glfw3.h>
-
-// Other Headers
-
+#include <imgui_dx11_impl.hpp>
+#endif
+#else
 #ifdef IMGUI_IMPL_GL2
-
-#include <imgui_gl2.hpp>
-
+#include <imgui_gl2_impl.hpp>
 #else
-
-#include <imgui_gl3.hpp>
-
+#include <imgui_gl3_impl.hpp>
 #endif
 #endif
 
@@ -85,158 +71,31 @@ namespace imgui_cs {
 			return buff;
 		}
 	};
-	class image final {
-		int m_width;
-		int m_height;
-		LPDIRECT3DTEXTURE9 m_textureID;
-		unsigned char *m_data;
-	public:
-		image()=delete;
-		image(const image&)=delete;
-		image(image&&) noexcept=delete;
-		image(const std::string& path)
-		{
-			int n;
-			if (!stbi_info(path.c_str(), &m_width, &m_height, &n))
-				throw cs::lang_error("Read Image Info Error!");
-			if (D3DXCreateTextureFromFile(ImGui_ImplDX9_Getpd3dDevice(), path.c_str(), &m_textureID) != D3D_OK)
-				throw cs::lang_error("Open Image Error!");
-		}
-		~image()
-		{
-			m_textureID->Release();
-		}
-		int get_width() const
-		{
-			return m_width;
-		}
-
-		int get_height() const
-		{
-			return m_height;
-		}
-
-		ImTextureID get_texture_id() const
-		{
-			return reinterpret_cast<ImTextureID>(m_textureID);
-		}
-	};
-	#ifndef IMGUI_IMPL_WIN32
-	class image final {
-		int m_width;
-		int m_height;
-		GLuint m_textureID;
-		unsigned char *m_data;
-	public:
-		image()=delete;
-		image(const image&)=delete;
-		image(image&&) noexcept=delete;
-		image(unsigned char *data, int width, int height):m_width(width), m_height(height), m_data(data)
-		{
-			m_data = stbi_load(path.c_str(), &m_width, &m_height, nullptr, 3);
-			glGenTextures(1, &m_textureID);
-			glBindTexture(GL_TEXTURE_2D, m_textureID);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_width, m_height, 0, GL_RGB, GL_UNSIGNED_BYTE, m_data);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		}
-		~image()
-		{
-			stbi_image_free(m_data);
-		}
-		int get_width() const
-		{
-			return m_width;
-		}
-
-		int get_height() const
-		{
-			return m_height;
-		}
-
-		ImTextureID get_texture_id() const
-		{
-			return reinterpret_cast<ImTextureID>(m_textureID);
-		}
-	};
-	#endif
 } // namespace imgui_cs
-
-#ifndef IMGUI_IMPL_WIN32
-// GLFW Instance
-static imgui_cs::glfw_instance glfw_instance;
-#endif
 
 CNI_ROOT_NAMESPACE {
 	using namespace cs;
-	using application_t = std::shared_ptr<imgui_cs::application>;
-	using image_t = std::shared_ptr<imgui_cs::image>;
-
-// GLFW Functions
-	number get_monitor_count()
-	{
-#ifdef IMGUI_IMPL_WIN32
-		return GetSystemMetrics(SM_CMONITORS);
-#else
-		int count = 0;
-		glfwGetMonitors(&count);
-		return count;
-#endif
-	}
+	using namespace imgui_cs;
+	using application_t = std::shared_ptr<application>;
+	using image_t = std::shared_ptr<image>;
 
 	CNI(get_monitor_count)
 
-	number get_monitor_width(number monitor_id)
-	{
-#ifdef IMGUI_IMPL_WIN32
-		int count = GetSystemMetrics(SM_CMONITORS);
-		if (monitor_id >= count)
-			throw cs::lang_error("Monitor does not exist.");
-		RECT size = imgui_cs::GetScreenRect(monitor_id);
-		return size.right - size.left;
-#else
-		int count = 0;
-		GLFWmonitor **monitors = glfwGetMonitors(&count);
-		if (monitor_id >= count)
-			throw cs::lang_error("Monitor does not exist.");
-		const GLFWvidmode *vidmode = glfwGetVideoMode(monitors[static_cast<std::size_t>(monitor_id)]);
-		return vidmode->width;
-#endif
-	}
-
 	CNI(get_monitor_width)
-
-	number get_monitor_height(number monitor_id)
-	{
-#ifdef IMGUI_IMPL_WIN32
-		int count = GetSystemMetrics(SM_CMONITORS);
-		if (monitor_id >= count)
-			throw cs::lang_error("Monitor does not exist.");
-		RECT size = imgui_cs::GetScreenRect(monitor_id);
-		return size.bottom - size.top;
-#else
-		int count = 0;
-		GLFWmonitor **monitors = glfwGetMonitors(&count);
-		if (monitor_id >= count)
-			throw cs::lang_error("Monitor does not exist.");
-		const GLFWvidmode *vidmode = glfwGetVideoMode(monitors[static_cast<std::size_t>(monitor_id)]);
-		return vidmode->width;
-#endif
-	}
 
 	CNI(get_monitor_height)
 
 // ImGui Application
 	application_t fullscreen_application(number monitor_id, const string &title)
 	{
-		return std::make_shared<imgui_cs::application>(monitor_id, title);
+		return std::make_shared<application>(monitor_id, title);
 	}
 
 	CNI(fullscreen_application)
 
 	application_t window_application(number width, number height, const string &title)
 	{
-		return std::make_shared<imgui_cs::application>(width, height, title);
+		return std::make_shared<application>(width, height, title);
 	}
 
 	CNI(window_application)
@@ -295,7 +154,7 @@ CNI_ROOT_NAMESPACE {
 // ImGui Image
 	image_t load_image(const string &path)
 	{
-		return std::make_shared<imgui_cs::image>(path);
+		return std::make_shared<image>(path);
 	}
 
 	CNI(load_image)
@@ -388,13 +247,13 @@ CNI_ROOT_NAMESPACE {
 	{
 		ImFontConfig font_cfg = ImFontConfig();
 		ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "DefaultFont, %.0fpx", (float) size);
-		return ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(imgui_cs::get_default_font_data(), size,
+		return ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(get_default_font_data(), size,
 		        &font_cfg);
 	}
 
 	CNI(add_font_default)
 
-	ImFont *add_font_extend(const imgui_cs::font &f, number size)
+	ImFont *add_font_extend(const font &f, number size)
 	{
 		ImFontConfig font_cfg = ImFontConfig();
 		ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "%s, %.0fpx", f.name, (float) size);
@@ -403,7 +262,7 @@ CNI_ROOT_NAMESPACE {
 
 	CNI(add_font_extend)
 
-	ImFont *add_font_extend_cn(const imgui_cs::font &f, number size)
+	ImFont *add_font_extend_cn(const font &f, number size)
 	{
 		ImFontConfig font_cfg = ImFontConfig();
 		font_cfg.OversampleH = font_cfg.OversampleV = 1;
@@ -907,7 +766,7 @@ CNI_ROOT_NAMESPACE {
 
 	void input_text(const string &str, string &text, number buff_size)
 	{
-		imgui_cs::buffer<> buff(buff_size);
+		buffer<> buff(buff_size);
 		std::strcpy(buff.get(), text.c_str());
 		ImGui::InputText(str.c_str(), buff.get(), buff_size);
 		text = buff.get();
@@ -917,7 +776,7 @@ CNI_ROOT_NAMESPACE {
 
 	void input_text_s(const string &str, string &text, number buff_size, const array &flags_arr)
 	{
-		imgui_cs::buffer<> buff(buff_size);
+		buffer<> buff(buff_size);
 		std::strcpy(buff.get(), text.c_str());
 		ImGuiInputTextFlags flags = 0;
 		for (auto &it : flags_arr)
@@ -930,7 +789,7 @@ CNI_ROOT_NAMESPACE {
 
 	void input_text_hint(const string &str, const string &hint, string &text, number buff_size)
 	{
-		imgui_cs::buffer<> buff(buff_size);
+		buffer<> buff(buff_size);
 		std::strcpy(buff.get(), text.c_str());
 		ImGui::InputTextWithHint(str.c_str(), hint.c_str(), buff.get(), buff_size);
 		text = buff.get();
@@ -940,7 +799,7 @@ CNI_ROOT_NAMESPACE {
 
 	void input_text_hint_s(const string &str, const string &hint, string &text, number buff_size, const array &flags_arr)
 	{
-		imgui_cs::buffer<> buff(buff_size);
+		buffer<> buff(buff_size);
 		std::strcpy(buff.get(), text.c_str());
 		ImGuiInputTextFlags flags = 0;
 		for (auto &it : flags_arr)
@@ -953,7 +812,7 @@ CNI_ROOT_NAMESPACE {
 
 	void input_text_multiline(const string &str, string &text, number buff_size)
 	{
-		imgui_cs::buffer<> buff(buff_size);
+		buffer<> buff(buff_size);
 		std::strcpy(buff.get(), text.c_str());
 		ImGui::InputTextMultiline(str.c_str(), buff.get(), buff_size);
 		text = buff.get();
@@ -963,7 +822,7 @@ CNI_ROOT_NAMESPACE {
 
 	void input_text_multiline_s(const string &str, string &text, number buff_size, const array &flags_arr)
 	{
-		imgui_cs::buffer<> buff(buff_size);
+		buffer<> buff(buff_size);
 		std::strcpy(buff.get(), text.c_str());
 		ImGuiInputTextFlags flags = 0;
 		for (auto &it : flags_arr)

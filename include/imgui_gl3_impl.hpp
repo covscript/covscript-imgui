@@ -1,6 +1,6 @@
 #pragma once
 /*
-* Covariant Script ImGUI Extension OpenGL 2 Implement
+* Covariant Script ImGUI Extension OpenGL 3 Implement
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -20,8 +20,9 @@
 * Github:  https://github.com/mikecovlee
 * Website: http://covscript.org.cn
 */
+#include <imgui_glfw.hpp>
 #include <imgui_impl_glfw.h>
-#include <imgui_impl_opengl2.h>
+#include <imgui_impl_opengl3.h>
 
 namespace imgui_cs {
 	const char *get_default_font_data();
@@ -38,6 +39,17 @@ namespace imgui_cs {
 			glfwSetErrorCallback(error_callback);
 			if (!glfwInit())
 				throw cs::lang_error("Init OpenGL Error.");
+#if __APPLE__
+			// GL 3.2
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+			glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#else
+			// GL 3.0
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+#endif
 		}
 
 		glfw_instance(const glfw_instance &) = delete;
@@ -56,13 +68,21 @@ namespace imgui_cs {
 
 		void init()
 		{
+#if __APPLE__
+			// GLSL 150
+			const char* glsl_version = "#version 150";
+#else
+			// GLSL 130
+			const char *glsl_version = "#version 130";
+#endif
 			glfwMakeContextCurrent(window);
 			glfwSwapInterval(1);
-			gl3wInit();
+			if (gl3wInit() != 0)
+				throw cs::lang_error("Failed to initialize OpenGL loader.");
 			IMGUI_CHECKVERSION();
 			ImGui::CreateContext();
 			ImGui_ImplGlfw_InitForOpenGL(window, true);
-			ImGui_ImplOpenGL2_Init();
+			ImGui_ImplOpenGL3_Init(glsl_version);
 			ImFontConfig font_cfg = ImFontConfig();
 			ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "DefaultFont, 14px");
 			ImGui::GetIO().FontDefault = ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(
@@ -95,7 +115,7 @@ namespace imgui_cs {
 
 		~application()
 		{
-			ImGui_ImplOpenGL2_Shutdown();
+			ImGui_ImplOpenGL3_Shutdown();
 			ImGui_ImplGlfw_Shutdown();
 			ImGui::DestroyContext();
 			glfwDestroyWindow(window);
@@ -139,7 +159,7 @@ namespace imgui_cs {
 		void prepare()
 		{
 			glfwPollEvents();
-			ImGui_ImplOpenGL2_NewFrame();
+			ImGui_ImplOpenGL3_NewFrame();
 			ImGui_ImplGlfw_NewFrame();
 			ImGui::NewFrame();
 		}
@@ -148,13 +168,17 @@ namespace imgui_cs {
 		{
 			ImGui::Render();
 			int display_w, display_h;
+			glfwMakeContextCurrent(window);
 			glfwGetFramebufferSize(window, &display_w, &display_h);
 			glViewport(0, 0, display_w, display_h);
 			glClearColor(bg_color.x, bg_color.y, bg_color.z, bg_color.w);
 			glClear(GL_COLOR_BUFFER_BIT);
-			ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
+			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 			glfwMakeContextCurrent(window);
 			glfwSwapBuffers(window);
 		}
 	};
 }
+
+// GLFW Instance
+static imgui_cs::glfw_instance glfw_instance;
