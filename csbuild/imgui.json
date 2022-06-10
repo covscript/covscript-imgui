@@ -1,9 +1,9 @@
 {
     "Type": "Extension",
     "Name": "imgui",
-    "Info": "ImGUI OpenGL3 Extension",
+    "Info": "ImGUI Extension Modern Impl",
     "Author": "CovScript Organization",
-    "Version": "1.87_v1",
+    "Version": "1.87_v2",
     "Target": "build/imports/imgui.cse",
     "Dependencies": []
 }
