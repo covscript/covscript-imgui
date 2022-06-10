@@ -54,6 +54,7 @@ target_compile_definitions(imgui PUBLIC IMGUI_IMPL_OPENGL_LOADER_GL3W)
 target_compile_definitions(imgui_legacy_ext PRIVATE IMGUI_IMPL_GL2)
 
 if (WIN32)
+    target_compile_definitions(imgui PUBLIC IMGUI_ENABLE_WIN32_DEFAULT_IME_FUNCTIONS)
     target_link_libraries(imgui glfw3 gdi32 opengl32 imm32)
 endif ()
 

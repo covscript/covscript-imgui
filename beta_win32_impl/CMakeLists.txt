@@ -51,6 +51,7 @@ add_library(imgui_ext SHARED ../backends/imgui_impl_dx11.cpp ../src/WICTextureLo
 add_library(imgui_legacy_ext SHARED ../backends/imgui_impl_dx9.cpp ../imgui.cpp)
 
 target_compile_definitions(imgui PUBLIC IMGUI_IMPL_WIN32)
+target_compile_definitions(imgui PUBLIC IMGUI_ENABLE_WIN32_DEFAULT_IME_FUNCTIONS)
 target_compile_definitions(imgui_legacy_ext PRIVATE IMGUI_IMPL_DX9)
 
 target_link_libraries(imgui gdi32 dwmapi imm32)
