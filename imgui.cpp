@@ -28,6 +28,7 @@
 
 // Common Header
 #include <imgui.h>
+#include <imgui_stdlib.h>
 #include <imgui_internal.h>
 
 #ifdef IMGUI_IMPL_WIN32
@@ -766,69 +767,51 @@ CNI_ROOT_NAMESPACE {
 
 	void input_text(const string &str, string &text, number buff_size)
 	{
-		buffer<> buff(buff_size);
-		std::strcpy(buff.get(), text.c_str());
-		ImGui::InputText(str.c_str(), buff.get(), buff_size);
-		text = buff.get();
+		ImGui::InputText(str.c_str(), &text);
 	}
 
 	CNI(input_text)
 
 	void input_text_s(const string &str, string &text, number buff_size, const array &flags_arr)
 	{
-		buffer<> buff(buff_size);
-		std::strcpy(buff.get(), text.c_str());
 		ImGuiInputTextFlags flags = 0;
 		for (auto &it : flags_arr)
 			flags |= it.const_val<ImGuiInputTextFlags>();
-		ImGui::InputText(str.c_str(), buff.get(), buff_size, flags);
-		text = buff.get();
+		ImGui::InputText(str.c_str(), &text, flags);
 	}
 
 	CNI(input_text_s)
 
 	void input_text_hint(const string &str, const string &hint, string &text, number buff_size)
 	{
-		buffer<> buff(buff_size);
-		std::strcpy(buff.get(), text.c_str());
-		ImGui::InputTextWithHint(str.c_str(), hint.c_str(), buff.get(), buff_size);
-		text = buff.get();
+		ImGui::InputTextWithHint(str.c_str(), hint.c_str(), &text);
 	}
 
 	CNI(input_text_hint)
 
 	void input_text_hint_s(const string &str, const string &hint, string &text, number buff_size, const array &flags_arr)
 	{
-		buffer<> buff(buff_size);
-		std::strcpy(buff.get(), text.c_str());
 		ImGuiInputTextFlags flags = 0;
 		for (auto &it : flags_arr)
 			flags |= it.const_val<ImGuiInputTextFlags>();
-		ImGui::InputTextWithHint(str.c_str(), hint.c_str(), buff.get(), buff_size, flags);
-		text = buff.get();
+		ImGui::InputTextWithHint(str.c_str(), hint.c_str(), &text, flags);
 	}
 
 	CNI(input_text_hint_s)
 
 	void input_text_multiline(const string &str, string &text, number buff_size)
 	{
-		buffer<> buff(buff_size);
-		std::strcpy(buff.get(), text.c_str());
-		ImGui::InputTextMultiline(str.c_str(), buff.get(), buff_size);
-		text = buff.get();
+		ImGui::InputTextMultiline(str.c_str(), &text);
 	}
 
 	CNI(input_text_multiline)
 
 	void input_text_multiline_s(const string &str, string &text, number buff_size, const array &flags_arr)
 	{
-		buffer<> buff(buff_size);
-		std::strcpy(buff.get(), text.c_str());
 		ImGuiInputTextFlags flags = 0;
 		for (auto &it : flags_arr)
 			flags |= it.const_val<ImGuiInputTextFlags>();
-		ImGui::InputTextMultiline(str.c_str(), buff.get(), buff_size, ImVec2(0, 0), flags);
-		text = buff.get();
+		ImGui::InputTextMultiline(str.c_str(), &text, ImVec2(0, 0), flags);
 	}
 
 	CNI(input_text_multiline_s)

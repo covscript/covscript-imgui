@@ -43,7 +43,8 @@ set(IMGUI_SOURCE_CODE
         src/imgui_demo.cpp
         src/imgui_draw.cpp
         src/imgui_widgets.cpp
-        src/imgui_tables.cpp)
+        src/imgui_tables.cpp
+        src/imgui_stdlib.cpp)
 else ()
 set(IMGUI_SOURCE_CODE
         backends/imgui_impl_glfw.cpp
@@ -53,7 +54,8 @@ set(IMGUI_SOURCE_CODE
         src/imgui_demo.cpp
         src/imgui_draw.cpp
         src/imgui_widgets.cpp
-        src/imgui_tables.cpp)
+        src/imgui_tables.cpp
+        src/imgui_stdlib.cpp)
 endif ()
 
 add_library(imgui STATIC ${IMGUI_SOURCE_CODE})
