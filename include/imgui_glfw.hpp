@@ -43,17 +43,17 @@ namespace imgui_cs {
 		image(image&&) noexcept=delete;
 		image(const std::string& path)
 		{
-			m_data = stbi_load(path.c_str(), &m_width, &m_height, nullptr, 3);
+			m_data = stbi_load(path.c_str(), &m_width, &m_height, nullptr, 4);
+			if (m_data == nullptr)
+				throw cs::lang_error("Open image error!");
 			glGenTextures(1, &m_textureID);
 			glBindTexture(GL_TEXTURE_2D, m_textureID);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_width, m_height, 0, GL_RGB, GL_UNSIGNED_BYTE, m_data);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		}
-		~image()
-		{
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_data);
 			stbi_image_free(m_data);
 		}
+		~image() {}
 		int get_width() const
 		{
 			return m_width;

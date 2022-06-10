@@ -20,6 +20,7 @@
 * Github:  https://github.com/mikecovlee
 * Website: http://covscript.org.cn
 */
+#include <imgui_glfw.hpp>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl2.h>
 

@@ -25,8 +25,6 @@
 #include <imgui_impl_opengl3.h>
 
 namespace imgui_cs {
-	const char *get_default_font_data();
-
 	class glfw_instance final {
 		static void error_callback(int error, const char *description)
 		{
