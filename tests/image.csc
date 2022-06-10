@@ -7,7 +7,7 @@ style_color_dark()
 var window_opened=true
 var show_confirm=false
 var show_about=false
-var img=load_bmp_image("./res/covariant_script_wide.bmp")
+var img=load_image("./res/covariant_script_wide.bmp")
 var progress=0
 function menu()
     menu_item("Covariant Script GUI","",false)

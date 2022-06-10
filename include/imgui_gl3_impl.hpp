@@ -20,12 +20,11 @@
 * Github:  https://github.com/mikecovlee
 * Website: http://covscript.org.cn
 */
+#include <imgui_glfw.hpp>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
 namespace imgui_cs {
-	const char *get_default_font_data();
-
 	class glfw_instance final {
 		static void error_callback(int error, const char *description)
 		{
@@ -178,3 +177,6 @@ namespace imgui_cs {
 		}
 	};
 }
+
+// GLFW Instance
+static imgui_cs::glfw_instance glfw_instance;

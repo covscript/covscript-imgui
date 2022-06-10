@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.4)
 
 project(covscript-imgui)
-include_directories(backends)
-include_directories(include)
-include_directories(include/imgui)
+include_directories(../backends)
+include_directories(../include)
+include_directories(../include/imgui)
 
 if (DEFINED ENV{CS_DEV_PATH})
     include_directories($ENV{CS_DEV_PATH}/include)
@@ -35,43 +35,28 @@ else ()
 endif ()
 
 set(IMGUI_SOURCE_CODE
-        backends/imgui_impl_glfw.cpp
-        res/default_font.cpp
-        src/gl3w.c
-        src/imgui.cpp
-        src/imgui_demo.cpp
-        src/imgui_draw.cpp
-        src/imgui_widgets.cpp
-        src/imgui_tables.cpp
-        src/imgui_stdlib.cpp)
+        ../backends/imgui_impl_win32.cpp
+        ../res/default_font.cpp
+        ../src/gl3w.c
+        ../src/imgui.cpp
+        ../src/imgui_demo.cpp
+        ../src/imgui_draw.cpp
+        ../src/imgui_widgets.cpp
+        ../src/imgui_tables.cpp
+        ../src/imgui_stdlib.cpp)
 
 add_library(imgui STATIC ${IMGUI_SOURCE_CODE})
-add_library(imgui_font_ext SHARED imgui_font.cpp)
+add_library(imgui_font_ext SHARED ../imgui_font.cpp)
+add_library(imgui_ext SHARED ../backends/imgui_impl_dx11.cpp ../src/WICTextureLoader.cpp ../imgui.cpp)
+add_library(imgui_legacy_ext SHARED ../backends/imgui_impl_dx9.cpp ../imgui.cpp)
 
-add_library(imgui_ext SHARED backends/imgui_impl_opengl3.cpp imgui.cpp)
-add_library(imgui_legacy_ext SHARED backends/imgui_impl_opengl2.cpp imgui.cpp)
-target_compile_definitions(imgui PUBLIC IMGUI_IMPL_OPENGL_LOADER_GL3W)
-target_compile_definitions(imgui_legacy_ext PRIVATE IMGUI_IMPL_GL2)
+target_compile_definitions(imgui PUBLIC IMGUI_IMPL_WIN32)
+target_compile_definitions(imgui PUBLIC IMGUI_ENABLE_WIN32_DEFAULT_IME_FUNCTIONS)
+target_compile_definitions(imgui_legacy_ext PRIVATE IMGUI_IMPL_DX9)
 
-if (WIN32)
-    target_compile_definitions(imgui PUBLIC IMGUI_ENABLE_WIN32_DEFAULT_IME_FUNCTIONS)
-    target_link_libraries(imgui glfw3 gdi32 opengl32 imm32)
-endif ()
-
-if (UNIX)
-    find_package(glfw3 REQUIRED)
-    if (APPLE)
-        link_directories("/usr/local/lib")
-        link_directories("/opt/local/lib")
-        find_library(OPENGL_LIBS OpenGL)
-        find_library(COCOA_LIBS Cocoa)
-        find_library(IOKIT_LIBS IOKit)
-        find_library(COREVIDEO_LIBS CoreVideo)
-        target_link_libraries(imgui glfw ${OPENGL_LIBS} ${COCOA_LIBS} ${IOKIT_LIBS} ${COREVIDEO_LIBS})
-    else ()
-        target_link_libraries(imgui glfw GL)
-    endif ()
-endif ()
+target_link_libraries(imgui gdi32 dwmapi imm32)
+target_link_libraries(imgui_ext d3d11 d3dcompiler gdi32 dwmapi)
+target_link_libraries(imgui_legacy_ext d3d9 d3dx9 gdi32 dwmapi)
 
 target_link_libraries(imgui_font_ext covscript imgui)
 target_link_libraries(imgui_ext covscript imgui)

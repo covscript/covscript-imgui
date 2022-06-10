@@ -20,26 +20,29 @@
 * Website: http://covscript.org.cn
 */
 
+#if defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
+// #define IMGUI_IMPL_WIN32
+#endif
+
 #include <imgui.hpp>
 
-// ImGUI Common Header
+// Common Header
 #include <imgui.h>
+#include <imgui_stdlib.h>
 #include <imgui_internal.h>
 
-// GL3W/GLFW3
-#include <GL/gl3w.h>
-#include <GLFW/glfw3.h>
-
-// Other Headers
-
-#ifdef IMGUI_IMPL_GL2
-
-#include <imgui_gl2.hpp>
-
+#ifdef IMGUI_IMPL_WIN32
+#ifdef IMGUI_IMPL_DX9
+#include <imgui_dx9_impl.hpp>
 #else
-
-#include <imgui_gl3.hpp>
-
+#include <imgui_dx11_impl.hpp>
+#endif
+#else
+#ifdef IMGUI_IMPL_GL2
+#include <imgui_gl2_impl.hpp>
+#else
+#include <imgui_gl3_impl.hpp>
+#endif
 #endif
 
 namespace imgui_cs {
@@ -69,98 +72,31 @@ namespace imgui_cs {
 			return buff;
 		}
 	};
-
-	class image final {
-		int m_width;
-		int m_height;
-		GLuint m_textureID;
-		unsigned char *m_data;
-	public:
-		image()=delete;
-		image(const image&)=delete;
-		image(image&&) noexcept=delete;
-		image(unsigned char *data, int width, int height):m_width(width), m_height(height), m_data(data)
-		{
-			glGenTextures(1, &m_textureID);
-			glBindTexture(GL_TEXTURE_2D, m_textureID);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_width, m_height, 0, GL_BGR, GL_UNSIGNED_BYTE, m_data);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		}
-		~image()
-		{
-			delete[] m_data;
-		}
-		int get_width() const
-		{
-			return m_width;
-		}
-
-		int get_height() const
-		{
-			return m_height;
-		}
-
-		ImTextureID get_texture_id() const
-		{
-			return reinterpret_cast<ImTextureID>(m_textureID);
-		}
-	};
 } // namespace imgui_cs
-
-// GLFW Instance
-static imgui_cs::glfw_instance glfw_instance;
 
 CNI_ROOT_NAMESPACE {
 	using namespace cs;
-	using application_t = std::shared_ptr<imgui_cs::application>;
-	using image_t = std::shared_ptr<imgui_cs::image>;
-
-// GLFW Functions
-	number get_monitor_count()
-	{
-		int count = 0;
-		glfwGetMonitors(&count);
-		return count;
-	}
+	using namespace imgui_cs;
+	using application_t = std::shared_ptr<application>;
+	using image_t = std::shared_ptr<image>;
 
 	CNI(get_monitor_count)
 
-	number get_monitor_width(number monitor_id)
-	{
-		int count = 0;
-		GLFWmonitor **monitors = glfwGetMonitors(&count);
-		if (monitor_id >= count)
-			throw cs::lang_error("Monitor does not exist.");
-		const GLFWvidmode *vidmode = glfwGetVideoMode(monitors[static_cast<std::size_t>(monitor_id)]);
-		return vidmode->width;
-	}
-
 	CNI(get_monitor_width)
-
-	number get_monitor_height(number monitor_id)
-	{
-		int count = 0;
-		GLFWmonitor **monitors = glfwGetMonitors(&count);
-		if (monitor_id >= count)
-			throw cs::lang_error("Monitor does not exist.");
-		const GLFWvidmode *vidmode = glfwGetVideoMode(monitors[static_cast<std::size_t>(monitor_id)]);
-		return vidmode->height;
-	}
 
 	CNI(get_monitor_height)
 
 // ImGui Application
 	application_t fullscreen_application(number monitor_id, const string &title)
 	{
-		return std::make_shared<imgui_cs::application>(monitor_id, title);
+		return std::make_shared<application>(monitor_id, title);
 	}
 
 	CNI(fullscreen_application)
 
 	application_t window_application(number width, number height, const string &title)
 	{
-		return std::make_shared<imgui_cs::application>(width, height, title);
+		return std::make_shared<application>(width, height, title);
 	}
 
 	CNI(window_application)
@@ -217,53 +153,12 @@ CNI_ROOT_NAMESPACE {
 	}
 
 // ImGui Image
-	image_t make_image(unsigned char* data, number width, number height)
+	image_t load_image(const string &path)
 	{
-		return std::make_shared<imgui_cs::image>(data, width, height);
+		return std::make_shared<image>(path);
 	}
 
-	CNI_CONST(make_image)
-
-	image_t load_bmp_image(const string &path)
-	{
-		unsigned char header[54];
-		FILE *file = fopen(path.c_str(), "rb");
-		if (!file)
-			throw cs::lang_error("Image could not be opened");
-		if (fread(header, 1, 54, file) != 54) {
-			fclose(file);
-			throw cs::lang_error("Not a correct BMP file");
-		}
-		if (header[0] != 'B' || header[1] != 'M') {
-			fclose(file);
-			throw cs::lang_error("Not a correct BMP file");
-		}
-		if (*(int *) &(header[0x1C]) != 24) {
-			fclose(file);
-			throw cs::lang_error("Not a 24-bit BMP file");
-		}
-		int width = *(int *) &(header[0x12]);
-		int height = *(int *) &(header[0x16]);
-		int image_size = *(int *) &(header[0x22]);
-		if (image_size == 0)
-			image_size = width * height * 3;
-		unsigned char *data = new unsigned char[image_size];
-		if (fread(data, 1, image_size, file) != image_size)
-			throw cs::lang_error("Broken BMP file");
-		fclose(file);
-		unsigned char *reversed_data = new unsigned char[image_size];
-		int row_size = width * 3;
-		if (row_size % 4 != 0)
-			row_size += 4 - row_size % 4;
-		for (int y = 0; y < height; ++y)
-			for (int x = 0; x < row_size; ++x)
-				reversed_data[y * row_size + x] = data[(height - y - 1) * row_size + x];
-		std::swap(data, reversed_data);
-		delete[] reversed_data;
-		return std::make_shared<imgui_cs::image>(data, width, height);
-	}
-
-	CNI(load_bmp_image)
+	CNI(load_image)
 
 	CNI_NAMESPACE(image_type)
 	{
@@ -293,8 +188,12 @@ CNI_ROOT_NAMESPACE {
 
 	CNI_NAMESPACE(vec2_type)
 	{
-		CNI_VISITOR_V(x, [](const ImVec2& v){ return v.x; })
-		CNI_VISITOR_V(y, [](const ImVec2& v){ return v.y; })
+		CNI_VISITOR_V(x, [](const ImVec2& v) {
+			return v.x;
+		})
+		CNI_VISITOR_V(y, [](const ImVec2& v) {
+			return v.y;
+		})
 	}
 
 	ImVec4 vec4(number a, number b, number c, number d)
@@ -306,10 +205,18 @@ CNI_ROOT_NAMESPACE {
 
 	CNI_NAMESPACE(vec4_type)
 	{
-		CNI_VISITOR_V(x, [](const ImVec4& v){ return v.x; })
-		CNI_VISITOR_V(y, [](const ImVec4& v){ return v.y; })
-		CNI_VISITOR_V(z, [](const ImVec4& v){ return v.z; })
-		CNI_VISITOR_V(w, [](const ImVec4& v){ return v.w; })
+		CNI_VISITOR_V(x, [](const ImVec4& v) {
+			return v.x;
+		})
+		CNI_VISITOR_V(y, [](const ImVec4& v) {
+			return v.y;
+		})
+		CNI_VISITOR_V(z, [](const ImVec4& v) {
+			return v.z;
+		})
+		CNI_VISITOR_V(w, [](const ImVec4& v) {
+			return v.w;
+		})
 	}
 
 	number get_framerate()
@@ -341,13 +248,13 @@ CNI_ROOT_NAMESPACE {
 	{
 		ImFontConfig font_cfg = ImFontConfig();
 		ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "DefaultFont, %.0fpx", (float) size);
-		return ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(imgui_cs::get_default_font_data(), size,
+		return ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(get_default_font_data(), size,
 		        &font_cfg);
 	}
 
 	CNI(add_font_default)
 
-	ImFont *add_font_extend(const imgui_cs::font &f, number size)
+	ImFont *add_font_extend(const font &f, number size)
 	{
 		ImFontConfig font_cfg = ImFontConfig();
 		ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "%s, %.0fpx", f.name, (float) size);
@@ -356,7 +263,7 @@ CNI_ROOT_NAMESPACE {
 
 	CNI(add_font_extend)
 
-	ImFont *add_font_extend_cn(const imgui_cs::font &f, number size)
+	ImFont *add_font_extend_cn(const font &f, number size)
 	{
 		ImFontConfig font_cfg = ImFontConfig();
 		font_cfg.OversampleH = font_cfg.OversampleV = 1;
@@ -860,69 +767,51 @@ CNI_ROOT_NAMESPACE {
 
 	void input_text(const string &str, string &text, number buff_size)
 	{
-		imgui_cs::buffer<> buff(buff_size);
-		std::strcpy(buff.get(), text.c_str());
-		ImGui::InputText(str.c_str(), buff.get(), buff_size);
-		text = buff.get();
+		ImGui::InputText(str.c_str(), &text);
 	}
 
 	CNI(input_text)
 
 	void input_text_s(const string &str, string &text, number buff_size, const array &flags_arr)
 	{
-		imgui_cs::buffer<> buff(buff_size);
-		std::strcpy(buff.get(), text.c_str());
 		ImGuiInputTextFlags flags = 0;
 		for (auto &it : flags_arr)
 			flags |= it.const_val<ImGuiInputTextFlags>();
-		ImGui::InputText(str.c_str(), buff.get(), buff_size, flags);
-		text = buff.get();
+		ImGui::InputText(str.c_str(), &text, flags);
 	}
 
 	CNI(input_text_s)
 
 	void input_text_hint(const string &str, const string &hint, string &text, number buff_size)
 	{
-		imgui_cs::buffer<> buff(buff_size);
-		std::strcpy(buff.get(), text.c_str());
-		ImGui::InputTextWithHint(str.c_str(), hint.c_str(), buff.get(), buff_size);
-		text = buff.get();
+		ImGui::InputTextWithHint(str.c_str(), hint.c_str(), &text);
 	}
 
 	CNI(input_text_hint)
 
 	void input_text_hint_s(const string &str, const string &hint, string &text, number buff_size, const array &flags_arr)
 	{
-		imgui_cs::buffer<> buff(buff_size);
-		std::strcpy(buff.get(), text.c_str());
 		ImGuiInputTextFlags flags = 0;
 		for (auto &it : flags_arr)
 			flags |= it.const_val<ImGuiInputTextFlags>();
-		ImGui::InputTextWithHint(str.c_str(), hint.c_str(), buff.get(), buff_size, flags);
-		text = buff.get();
+		ImGui::InputTextWithHint(str.c_str(), hint.c_str(), &text, flags);
 	}
 
 	CNI(input_text_hint_s)
 
 	void input_text_multiline(const string &str, string &text, number buff_size)
 	{
-		imgui_cs::buffer<> buff(buff_size);
-		std::strcpy(buff.get(), text.c_str());
-		ImGui::InputTextMultiline(str.c_str(), buff.get(), buff_size);
-		text = buff.get();
+		ImGui::InputTextMultiline(str.c_str(), &text);
 	}
 
 	CNI(input_text_multiline)
 
 	void input_text_multiline_s(const string &str, string &text, number buff_size, const array &flags_arr)
 	{
-		imgui_cs::buffer<> buff(buff_size);
-		std::strcpy(buff.get(), text.c_str());
 		ImGuiInputTextFlags flags = 0;
 		for (auto &it : flags_arr)
 			flags |= it.const_val<ImGuiInputTextFlags>();
-		ImGui::InputTextMultiline(str.c_str(), buff.get(), buff_size, ImVec2(0, 0), flags);
-		text = buff.get();
+		ImGui::InputTextMultiline(str.c_str(), &text, ImVec2(0, 0), flags);
 	}
 
 	CNI(input_text_multiline_s)
