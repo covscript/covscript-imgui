@@ -21,7 +21,8 @@
 */
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
-#define IMGUI_IMPL_WIN32
+// #define IMGUI_IMPL_WIN32
+#define IMGUI_ENABLE_WIN32_DEFAULT_IME_FUNCTIONS
 #endif
 
 #include <imgui.hpp>
