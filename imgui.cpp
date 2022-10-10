@@ -87,14 +87,14 @@ CNI_ROOT_NAMESPACE {
 	CNI(get_monitor_height)
 
 // ImGui Application
-	application_t fullscreen_application(number monitor_id, const string &title)
+	application_t fullscreen_application(std::size_t monitor_id, const string &title)
 	{
 		return std::make_shared<application>(monitor_id, title);
 	}
 
 	CNI(fullscreen_application)
 
-	application_t window_application(number width, number height, const string &title)
+	application_t window_application(std::size_t width, std::size_t height, const string &title)
 	{
 		return std::make_shared<application>(width, height, title);
 	}
@@ -103,19 +103,19 @@ CNI_ROOT_NAMESPACE {
 
 	CNI_NAMESPACE(application)
 	{
-		number get_window_width(application_t &app) {
+		int get_window_width(application_t &app) {
 			return app->get_window_width();
 		}
 
 		CNI(get_window_width)
 
-		number get_window_height(application_t &app) {
+		int get_window_height(application_t &app) {
 			return app->get_window_height();
 		}
 
 		CNI(get_window_height)
 
-		void set_window_size(application_t &app, number width, number height) {
+		void set_window_size(application_t &app, int width, int height) {
 			app->set_window_size(width, height);
 		}
 
@@ -162,13 +162,13 @@ CNI_ROOT_NAMESPACE {
 
 	CNI_NAMESPACE(image_type)
 	{
-		number get_width(const image_t &image) {
+		int get_width(const image_t &image) {
 			return image->get_width();
 		}
 
 		CNI(get_width)
 
-		number get_height(const image_t &image) {
+		int get_height(const image_t &image) {
 			return image->get_height();
 		}
 
@@ -179,7 +179,7 @@ CNI_ROOT_NAMESPACE {
 
 	CNI_V(get_time, ImGui::GetTime)
 
-	ImVec2 vec2(number a, number b)
+	ImVec2 vec2(float a, float b)
 	{
 		return ImVec2(a, b);
 	}
@@ -196,7 +196,7 @@ CNI_ROOT_NAMESPACE {
 		})
 	}
 
-	ImVec4 vec4(number a, number b, number c, number d)
+	ImVec4 vec4(float a, float b, float c, float d)
 	{
 		return ImVec4(a, b, c, d);
 	}
@@ -219,7 +219,7 @@ CNI_ROOT_NAMESPACE {
 		})
 	}
 
-	number get_framerate()
+	float get_framerate()
 	{
 		return ImGui::GetIO().Framerate;
 	}
@@ -227,14 +227,14 @@ CNI_ROOT_NAMESPACE {
 	CNI(get_framerate)
 
 // Styles and Fonts
-	ImFont *add_font(const string &str, number size)
+	ImFont *add_font(const string &str, float size)
 	{
 		return ImGui::GetIO().Fonts->AddFontFromFileTTF(str.c_str(), size);
 	}
 
 	CNI(add_font)
 
-	ImFont *add_font_chinese(const string &str, number size)
+	ImFont *add_font_chinese(const string &str, float size)
 	{
 		ImFontConfig font_cfg = ImFontConfig();
 		font_cfg.OversampleH = font_cfg.OversampleV = 1;
@@ -244,7 +244,7 @@ CNI_ROOT_NAMESPACE {
 
 	CNI(add_font_chinese)
 
-	ImFont *add_font_default(number size)
+	ImFont *add_font_default(float size)
 	{
 		ImFontConfig font_cfg = ImFontConfig();
 		ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "DefaultFont, %.0fpx", (float) size);
@@ -254,7 +254,7 @@ CNI_ROOT_NAMESPACE {
 
 	CNI(add_font_default)
 
-	ImFont *add_font_extend(const font &f, number size)
+	ImFont *add_font_extend(const font &f, float size)
 	{
 		ImFontConfig font_cfg = ImFontConfig();
 		ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "%s, %.0fpx", f.name, (float) size);
@@ -263,7 +263,7 @@ CNI_ROOT_NAMESPACE {
 
 	CNI(add_font_extend)
 
-	ImFont *add_font_extend_cn(const font &f, number size)
+	ImFont *add_font_extend_cn(const font &f, float size)
 	{
 		ImFontConfig font_cfg = ImFontConfig();
 		font_cfg.OversampleH = font_cfg.OversampleV = 1;
@@ -295,14 +295,14 @@ CNI_ROOT_NAMESPACE {
 
 	CNI(get_font)
 
-	number get_font_size()
+	float get_font_size()
 	{
 		return ImGui::GetFontSize();
 	}
 
 	CNI(get_font_size)
 
-	void set_font_scale(number scale)
+	void set_font_scale(float scale)
 	{
 		ImGui::GetIO().FontGlobalScale = scale;
 	}
@@ -336,7 +336,7 @@ CNI_ROOT_NAMESPACE {
 
 	CNI_V(set_next_item_width, &ImGui::SetNextItemWidth)
 
-	number get_item_width()
+	float get_item_width()
 	{
 		return ImGui::GetItemRectSize().x;
 	}
@@ -369,14 +369,14 @@ CNI_ROOT_NAMESPACE {
 
 	CNI(set_window_pos)
 
-	number get_window_pos_x()
+	float get_window_pos_x()
 	{
 		return ImGui::GetWindowPos().x;
 	}
 
 	CNI(get_window_pos_x)
 
-	number get_window_pos_y()
+	float get_window_pos_y()
 	{
 		return ImGui::GetWindowPos().y;
 	}
@@ -425,21 +425,21 @@ CNI_ROOT_NAMESPACE {
 
 	CNI(set_window_focus)
 
-	void set_window_font_scale(number scale)
+	void set_window_font_scale(float scale)
 	{
 		ImGui::SetWindowFontScale(scale);
 	}
 
 	CNI(set_window_font_scale)
 
-	number get_window_width()
+	float get_window_width()
 	{
 		return ImGui::GetWindowWidth();
 	}
 
 	CNI(get_window_width)
 
-	number get_window_height()
+	float get_window_height()
 	{
 		return ImGui::GetWindowHeight();
 	}
@@ -562,7 +562,7 @@ CNI_ROOT_NAMESPACE {
 
 	CNI(spacing)
 
-	void blank(number wid)
+	void blank(float wid)
 	{
 		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + wid);
 	}
@@ -690,9 +690,9 @@ CNI_ROOT_NAMESPACE {
 
 	CNI(check_box)
 
-	void radio_button(const string &str, number &v, number v_button)
+	void radio_button(const string &str, numeric &v, int v_button)
 	{
-		int _v = v;
+		int _v = v.as_integer();
 		ImGui::RadioButton(str.c_str(), &_v, v_button);
 		v = _v;
 	}
@@ -701,7 +701,7 @@ CNI_ROOT_NAMESPACE {
 
 	float plot_value_getter(void *data, int idx)
 	{
-		return (*reinterpret_cast<const array *>(data))[idx].const_val<number>();
+		return (*reinterpret_cast<const array *>(data))[idx].const_val<numeric>().as_float();
 	}
 
 	void plot_lines(const string &label, const string &text, const array &data)
@@ -720,7 +720,7 @@ CNI_ROOT_NAMESPACE {
 
 	CNI(plot_histogram)
 
-	void progress_bar(number fraction, const string &overlay)
+	void progress_bar(float fraction, const string &overlay)
 	{
 		ImGui::ProgressBar(fraction, ImVec2(-1, 0), overlay.c_str());
 	}
@@ -734,12 +734,12 @@ CNI_ROOT_NAMESPACE {
 
 	CNI(bullet)
 
-	void combo_box(const string &str, number &current, const array &items)
+	void combo_box(const string &str, numeric &current, const array &items)
 	{
 		const char **_items = new const char *[items.size()];
 		for (std::size_t i = 0; i < items.size(); ++i)
 			_items[i] = items[i].const_val<string>().c_str();
-		int _current = current;
+		int _current = current.as_integer();
 		ImGui::Combo(str.c_str(), &_current, _items, items.size());
 		current = _current;
 		delete[] _items;
@@ -747,32 +747,32 @@ CNI_ROOT_NAMESPACE {
 
 	CNI(combo_box)
 
-	void drag_float(const string &label, number &n)
+	void drag_float(const string &label, numeric &n)
 	{
-		float f = static_cast<float>(n);
+		float f = n.as_float();
 		ImGui::DragFloat(label.c_str(), &f);
 		n = f;
 	}
 
 	CNI(drag_float)
 
-	void slider_float(const string &str, number &n, number min, number max)
+	void slider_float(const string &str, numeric &n, float min, float max)
 	{
-		float f = static_cast<float>(n);
+		float f = n.as_float();
 		ImGui::SliderFloat(str.c_str(), &f, min, max);
 		n = f;
 	}
 
 	CNI(slider_float)
 
-	void input_text(const string &str, string &text, number buff_size)
+	void input_text(const string &str, string &text, std::size_t buff_size)
 	{
 		ImGui::InputText(str.c_str(), &text);
 	}
 
 	CNI(input_text)
 
-	void input_text_s(const string &str, string &text, number buff_size, const array &flags_arr)
+	void input_text_s(const string &str, string &text, std::size_t buff_size, const array &flags_arr)
 	{
 		ImGuiInputTextFlags flags = 0;
 		for (auto &it : flags_arr)
@@ -782,14 +782,14 @@ CNI_ROOT_NAMESPACE {
 
 	CNI(input_text_s)
 
-	void input_text_hint(const string &str, const string &hint, string &text, number buff_size)
+	void input_text_hint(const string &str, const string &hint, string &text, std::size_t buff_size)
 	{
 		ImGui::InputTextWithHint(str.c_str(), hint.c_str(), &text);
 	}
 
 	CNI(input_text_hint)
 
-	void input_text_hint_s(const string &str, const string &hint, string &text, number buff_size, const array &flags_arr)
+	void input_text_hint_s(const string &str, const string &hint, string &text, std::size_t buff_size, const array &flags_arr)
 	{
 		ImGuiInputTextFlags flags = 0;
 		for (auto &it : flags_arr)
@@ -799,14 +799,14 @@ CNI_ROOT_NAMESPACE {
 
 	CNI(input_text_hint_s)
 
-	void input_text_multiline(const string &str, string &text, number buff_size)
+	void input_text_multiline(const string &str, string &text, std::size_t buff_size)
 	{
 		ImGui::InputTextMultiline(str.c_str(), &text);
 	}
 
 	CNI(input_text_multiline)
 
-	void input_text_multiline_s(const string &str, string &text, number buff_size, const array &flags_arr)
+	void input_text_multiline_s(const string &str, string &text, std::size_t buff_size, const array &flags_arr)
 	{
 		ImGuiInputTextFlags flags = 0;
 		for (auto &it : flags_arr)
@@ -853,12 +853,12 @@ CNI_ROOT_NAMESPACE {
 
 	CNI(selectable)
 
-	void list_box(const string &str, number &current, const array &items)
+	void list_box(const string &str, numeric &current, const array &items)
 	{
 		const char **_items = new const char *[items.size()];
 		for (std::size_t i = 0; i < items.size(); ++i)
 			_items[i] = items[i].const_val<string>().c_str();
-		int _current = current;
+		int _current = current.as_integer();
 		ImGui::ListBox(str.c_str(), &_current, _items, items.size());
 		current = _current;
 		delete[] _items;
@@ -1038,7 +1038,7 @@ CNI_ROOT_NAMESPACE {
 	CNI(set_tab_item_closed)
 
 // Columns
-	void columns(number count, const string &id, bool border)
+	void columns(int count, const string &id, bool border)
 	{
 		ImGui::Columns(count, id.c_str(), border);
 	}
@@ -1052,42 +1052,42 @@ CNI_ROOT_NAMESPACE {
 
 	CNI(next_column)
 
-	number get_column_index()
+	int get_column_index()
 	{
 		return ImGui::GetColumnIndex();
 	}
 
 	CNI(get_column_index)
 
-	number get_column_width(number index)
+	float get_column_width(int index)
 	{
 		return ImGui::GetColumnWidth();
 	}
 
 	CNI(get_column_width)
 
-	void set_column_width(number index, number width)
+	void set_column_width(int index, float width)
 	{
 		ImGui::SetColumnWidth(index, width);
 	}
 
 	CNI(set_column_width)
 
-	number get_column_offset(number index)
+	int get_column_offset(int index)
 	{
 		return ImGui::GetColumnOffset(index);
 	}
 
 	CNI(get_column_offset)
 
-	void set_column_offset(number index, number offset)
+	void set_column_offset(int index, int offset)
 	{
 		ImGui::SetColumnOffset(index, offset);
 	}
 
 	CNI(set_column_offset)
 
-	number get_columns_count()
+	int get_columns_count()
 	{
 		return ImGui::GetColumnsCount();
 	}
@@ -1131,7 +1131,7 @@ CNI_ROOT_NAMESPACE {
 
 	CNI(is_item_focused)
 
-	bool is_item_clicked(number button)
+	bool is_item_clicked(int button)
 	{
 		return ImGui::IsItemClicked(button);
 	}
@@ -1167,35 +1167,35 @@ CNI_ROOT_NAMESPACE {
 	CNI(is_any_item_focused)
 
 // Inputs
-	number get_key_index(ImGuiKey key)
+	int get_key_index(ImGuiKey key)
 	{
 		return ImGui::GetKeyIndex(key);
 	}
 
 	CNI(get_key_index)
 
-	bool is_key_down(number key)
+	bool is_key_down(int key)
 	{
 		return ImGui::IsKeyDown(key);
 	}
 
 	CNI(is_key_down)
 
-	bool is_key_pressed(number key)
+	bool is_key_pressed(int key)
 	{
 		return ImGui::IsKeyPressed(key);
 	}
 
 	CNI(is_key_pressed)
 
-	bool is_key_released(number key)
+	bool is_key_released(int key)
 	{
 		return ImGui::IsKeyReleased(key);
 	}
 
 	CNI(is_key_released)
 
-	bool is_mouse_down(number button)
+	bool is_mouse_down(int button)
 	{
 		return ImGui::IsMouseDown(button);
 	}
@@ -1209,56 +1209,56 @@ CNI_ROOT_NAMESPACE {
 
 	CNI(is_any_mouse_down)
 
-	bool is_mouse_clicked(number button)
+	bool is_mouse_clicked(int button)
 	{
 		return ImGui::IsMouseClicked(button);
 	}
 
 	CNI(is_mouse_clicked)
 
-	bool is_mouse_double_clicked(number button)
+	bool is_mouse_double_clicked(int button)
 	{
 		return ImGui::IsMouseDoubleClicked(button);
 	}
 
 	CNI(is_mouse_double_clicked)
 
-	bool is_mouse_released(number button)
+	bool is_mouse_released(int button)
 	{
 		return ImGui::IsMouseReleased(button);
 	}
 
 	CNI(is_mouse_released)
 
-	bool is_mouse_dragging(number button)
+	bool is_mouse_dragging(int button)
 	{
 		return ImGui::IsMouseDragging(button);
 	}
 
 	CNI(is_mouse_dragging)
 
-	number get_mouse_pos_x()
+	float get_mouse_pos_x()
 	{
 		return ImGui::GetMousePos().x;
 	}
 
 	CNI(get_mouse_pos_x)
 
-	number get_mouse_pos_y()
+	float get_mouse_pos_y()
 	{
 		return ImGui::GetMousePos().y;
 	}
 
 	CNI(get_mouse_pos_y)
 
-	number get_mouse_drag_delta_x()
+	float get_mouse_drag_delta_x()
 	{
 		return ImGui::GetMouseDragDelta().x;
 	}
 
 	CNI(get_mouse_drag_delta_x)
 
-	number get_mouse_drag_delta_y()
+	float get_mouse_drag_delta_y()
 	{
 		return ImGui::GetMouseDragDelta().y;
 	}
@@ -1280,14 +1280,14 @@ CNI_ROOT_NAMESPACE {
 	CNI(set_clipboard_text)
 
 // Canvas
-	void add_line(const ImVec2 &a, const ImVec2 &b, const ImVec4 &color, number thickness)
+	void add_line(const ImVec2 &a, const ImVec2 &b, const ImVec4 &color, float thickness)
 	{
 		ImGui::GetWindowDrawList()->AddLine(a, b, ImColor(color), thickness);
 	}
 
 	CNI(add_line)
 
-	void add_rect(const ImVec2 &a, const ImVec2 &b, const ImVec4 &color, number rounding, number thickness)
+	void add_rect(const ImVec2 &a, const ImVec2 &b, const ImVec4 &color, float rounding, float thickness)
 	{
 		ImGui::GetWindowDrawList()->AddRect(a, b, ImColor(color), rounding, ImDrawCornerFlags_All,
 		                                    thickness);
@@ -1295,7 +1295,7 @@ CNI_ROOT_NAMESPACE {
 
 	CNI(add_rect)
 
-	void add_rect_filled(const ImVec2 &a, const ImVec2 &b, const ImVec4 &color, number rounding)
+	void add_rect_filled(const ImVec2 &a, const ImVec2 &b, const ImVec4 &color, float rounding)
 	{
 		ImGui::GetWindowDrawList()->AddRectFilled(a, b, ImColor(color), rounding, ImDrawCornerFlags_All);
 	}
@@ -1303,7 +1303,7 @@ CNI_ROOT_NAMESPACE {
 	CNI(add_rect_filled)
 
 	void add_quad(const ImVec2 &a, const ImVec2 &b, const ImVec2 &c, const ImVec2 &d, const ImVec4 &color,
-	              number thickness)
+	              float thickness)
 	{
 		ImGui::GetWindowDrawList()->AddQuad(a, b, c, d, ImColor(color), thickness);
 	}
@@ -1317,7 +1317,7 @@ CNI_ROOT_NAMESPACE {
 
 	CNI(add_quad_filled)
 
-	void add_triangle(const ImVec2 &a, const ImVec2 &b, const ImVec2 &c, const ImVec4 &color, number thickness)
+	void add_triangle(const ImVec2 &a, const ImVec2 &b, const ImVec2 &c, const ImVec4 &color, float thickness)
 	{
 		ImGui::GetWindowDrawList()->AddTriangle(a, b, c, ImColor(color), thickness);
 	}
@@ -1331,21 +1331,21 @@ CNI_ROOT_NAMESPACE {
 
 	CNI(add_triangle_filled)
 
-	void add_circle(const ImVec2 &centre, number radius, const ImVec4 &color, number seg, number thickness)
+	void add_circle(const ImVec2 &centre, float radius, const ImVec4 &color, float seg, float thickness)
 	{
 		ImGui::GetWindowDrawList()->AddCircle(centre, radius, ImColor(color), seg, thickness);
 	}
 
 	CNI(add_circle)
 
-	void add_circle_filled(const ImVec2 &centre, number radius, const ImVec4 &color, number seg)
+	void add_circle_filled(const ImVec2 &centre, float radius, const ImVec4 &color, float seg)
 	{
 		ImGui::GetWindowDrawList()->AddCircleFilled(centre, radius, ImColor(color), seg);
 	}
 
 	CNI(add_circle_filled)
 
-	void add_text(ImFont *font, number size, const ImVec2 &pos, const ImVec4 &color, const string &text)
+	void add_text(ImFont *font, float size, const ImVec2 &pos, const ImVec4 &color, const string &text)
 	{
 		ImGui::GetWindowDrawList()->AddText(font, size, pos, ImColor(color), text.c_str());
 	}
