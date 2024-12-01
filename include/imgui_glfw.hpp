@@ -32,7 +32,7 @@
 #include <GLFW/glfw3.h>
 
 namespace imgui_cs {
-    class image final {
+	class image final {
 		int m_width;
 		int m_height;
 		GLuint m_textureID;
@@ -64,34 +64,34 @@ namespace imgui_cs {
 		}
 		ImTextureID get_texture_id() const
 		{
-			return reinterpret_cast<ImTextureID>(m_textureID);
+			return static_cast<ImTextureID>(m_textureID);
 		}
 	};
 
-    int get_monitor_count()
-    {
-        int count = 0;
+	int get_monitor_count()
+	{
+		int count = 0;
 		glfwGetMonitors(&count);
 		return count;
-    }
+	}
 
-    int get_monitor_width(int monitor_id)
-    {
-        int count = 0;
+	int get_monitor_width(int monitor_id)
+	{
+		int count = 0;
 		GLFWmonitor **monitors = glfwGetMonitors(&count);
 		if (monitor_id >= count)
 			throw cs::lang_error("Monitor does not exist.");
 		const GLFWvidmode *vidmode = glfwGetVideoMode(monitors[static_cast<std::size_t>(monitor_id)]);
 		return vidmode->width;
-    }
+	}
 
-    int get_monitor_height(int monitor_id)
-    {
-        int count = 0;
+	int get_monitor_height(int monitor_id)
+	{
+		int count = 0;
 		GLFWmonitor **monitors = glfwGetMonitors(&count);
 		if (monitor_id >= count)
 			throw cs::lang_error("Monitor does not exist.");
 		const GLFWvidmode *vidmode = glfwGetVideoMode(monitors[static_cast<std::size_t>(monitor_id)]);
 		return vidmode->height;
-    }
+	}
 }
