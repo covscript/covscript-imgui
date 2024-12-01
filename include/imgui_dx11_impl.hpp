@@ -14,11 +14,11 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *
-* Copyright (C) 2017-2021 Michael Lee(李登淳)
+* Copyright (C) 2017-2024 Michael Lee(李登淳)
 *
-* Email:   lee@covariant.cn, mikecovlee@163.com
+* Email:   mikecovlee@163.com
 * Github:  https://github.com/mikecovlee
-* Website: http://covscript.org.cn
+* Website: https://covscript.org.cn
 */
 #include <imgui_win32.hpp>
 #include <imgui_impl_dx11.h>
