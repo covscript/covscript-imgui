@@ -1170,6 +1170,11 @@ CNI_ROOT_NAMESPACE {
 	CNI(is_any_item_focused)
 
 // Inputs
+	CNI_V(get_key_index, [](const var& key)
+	{
+		// Obsoleted, use is_key_pressed(key) directly.
+		return key;
+	})
 
 	bool is_key_down(ImGuiKey key)
 	{
