@@ -43,7 +43,7 @@ while !app.is_closed()
     else
         progress+=(100-progress)/100
     end
-    if is_key_pressed(get_key_index(keys.escape))
+    if is_key_pressed(keys.escape)
         show_confirm=true
     end
     if begin_main_menu_bar()

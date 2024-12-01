@@ -1171,23 +1171,23 @@ CNI_ROOT_NAMESPACE {
 
 // Inputs
 
-	bool is_key_down(int key)
+	bool is_key_down(ImGuiKey key)
 	{
-		return ImGui::IsKeyDown(static_cast<ImGuiKey>(key));
+		return ImGui::IsKeyDown(key);
 	}
 
 	CNI(is_key_down)
 
-	bool is_key_pressed(int key)
+	bool is_key_pressed(ImGuiKey key)
 	{
-		return ImGui::IsKeyPressed(static_cast<ImGuiKey>(key));
+		return ImGui::IsKeyPressed(key);
 	}
 
 	CNI(is_key_pressed)
 
-	bool is_key_released(int key)
+	bool is_key_released(ImGuiKey key)
 	{
-		return ImGui::IsKeyReleased(static_cast<ImGuiKey>(key));
+		return ImGui::IsKeyReleased(key);
 	}
 
 	CNI(is_key_released)

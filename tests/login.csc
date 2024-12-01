@@ -39,7 +39,7 @@ while !app.is_closed()
     pop_item_width()
     text_size = calc_text_size(btn_txt)
     blank((region_width - align_width)/2)
-    if button_s(btn_txt, vec2(align_width, text_size.y + 10)) || is_key_pressed(get_key_index(keys.enter))
+    if button_s(btn_txt, vec2(align_width, text_size.y + 10)) || is_key_pressed(keys.enter)
         title = "欢迎，" + username
     end
 	end_window()
