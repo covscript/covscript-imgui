@@ -14,11 +14,11 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *
-* Copyright (C) 2017-2021 Michael Lee(李登淳)
+* Copyright (C) 2017-2024 Michael Lee(李登淳)
 *
-* Email:   lee@covariant.cn, mikecovlee@163.com
+* Email:   mikecovlee@163.com
 * Github:  https://github.com/mikecovlee
-* Website: http://covscript.org.cn
+* Website: https://covscript.org.cn
 */
 
 #include <imgui.hpp>
@@ -32,7 +32,7 @@
 #include <GLFW/glfw3.h>
 
 namespace imgui_cs {
-    class image final {
+	class image final {
 		int m_width;
 		int m_height;
 		GLuint m_textureID;
@@ -64,34 +64,34 @@ namespace imgui_cs {
 		}
 		ImTextureID get_texture_id() const
 		{
-			return reinterpret_cast<ImTextureID>(m_textureID);
+			return static_cast<ImTextureID>(m_textureID);
 		}
 	};
 
-    int get_monitor_count()
-    {
-        int count = 0;
+	int get_monitor_count()
+	{
+		int count = 0;
 		glfwGetMonitors(&count);
 		return count;
-    }
+	}
 
-    int get_monitor_width(int monitor_id)
-    {
-        int count = 0;
+	int get_monitor_width(int monitor_id)
+	{
+		int count = 0;
 		GLFWmonitor **monitors = glfwGetMonitors(&count);
 		if (monitor_id >= count)
 			throw cs::lang_error("Monitor does not exist.");
 		const GLFWvidmode *vidmode = glfwGetVideoMode(monitors[static_cast<std::size_t>(monitor_id)]);
 		return vidmode->width;
-    }
+	}
 
-    int get_monitor_height(int monitor_id)
-    {
-        int count = 0;
+	int get_monitor_height(int monitor_id)
+	{
+		int count = 0;
 		GLFWmonitor **monitors = glfwGetMonitors(&count);
 		if (monitor_id >= count)
 			throw cs::lang_error("Monitor does not exist.");
 		const GLFWvidmode *vidmode = glfwGetVideoMode(monitors[static_cast<std::size_t>(monitor_id)]);
 		return vidmode->height;
-    }
+	}
 }

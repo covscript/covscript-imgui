@@ -13,11 +13,11 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *
-* Copyright (C) 2017-2021 Michael Lee(李登淳)
+* Copyright (C) 2017-2024 Michael Lee(李登淳)
 *
-* Email:   lee@covariant.cn, mikecovlee@163.com
+* Email:   mikecovlee@163.com
 * Github:  https://github.com/mikecovlee
-* Website: http://covscript.org.cn
+* Website: https://covscript.org.cn
 */
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
@@ -352,7 +352,10 @@ CNI_ROOT_NAMESPACE {
 
 	CNI(calc_text_size)
 
-	CNI_V(get_window_content_region_width, &ImGui::GetWindowContentRegionWidth)
+	CNI_V(get_window_content_region_width, []()
+	{
+		return ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x;
+	})
 
 // Windows
 	void set_next_window_pos(const ImVec2 &pos)
@@ -676,9 +679,9 @@ CNI_ROOT_NAMESPACE {
 
 	CNI(image)
 
-	bool image_button(const image_t &img, const ImVec2 &size)
+	bool image_button(const string &str, image_t &img, const ImVec2 &size)
 	{
-		return ImGui::ImageButton(img->get_texture_id(), size);
+		return ImGui::ImageButton(str.c_str(), img->get_texture_id(), size);
 	}
 
 	CNI(image_button)
@@ -1167,30 +1170,29 @@ CNI_ROOT_NAMESPACE {
 	CNI(is_any_item_focused)
 
 // Inputs
-	int get_key_index(ImGuiKey key)
+	CNI_V(get_key_index, [](const var& key)
 	{
-		return ImGui::GetKeyIndex(key);
-	}
+		// Obsoleted, use is_key_pressed(key) directly.
+		return key;
+	})
 
-	CNI(get_key_index)
-
-	bool is_key_down(int key)
+	bool is_key_down(ImGuiKey key)
 	{
-		return ImGui::IsKeyDown(static_cast<ImGuiKey>(key));
+		return ImGui::IsKeyDown(key);
 	}
 
 	CNI(is_key_down)
 
-	bool is_key_pressed(int key)
+	bool is_key_pressed(ImGuiKey key)
 	{
-		return ImGui::IsKeyPressed(static_cast<ImGuiKey>(key));
+		return ImGui::IsKeyPressed(key);
 	}
 
 	CNI(is_key_pressed)
 
-	bool is_key_released(int key)
+	bool is_key_released(ImGuiKey key)
 	{
-		return ImGui::IsKeyReleased(static_cast<ImGuiKey>(key));
+		return ImGui::IsKeyReleased(key);
 	}
 
 	CNI(is_key_released)
@@ -1289,7 +1291,7 @@ CNI_ROOT_NAMESPACE {
 
 	void add_rect(const ImVec2 &a, const ImVec2 &b, const ImVec4 &color, float rounding, float thickness)
 	{
-		ImGui::GetWindowDrawList()->AddRect(a, b, ImColor(color), rounding, ImDrawCornerFlags_All,
+		ImGui::GetWindowDrawList()->AddRect(a, b, ImColor(color), rounding, ImDrawFlags_RoundCornersAll,
 		                                    thickness);
 	}
 
@@ -1297,7 +1299,7 @@ CNI_ROOT_NAMESPACE {
 
 	void add_rect_filled(const ImVec2 &a, const ImVec2 &b, const ImVec4 &color, float rounding)
 	{
-		ImGui::GetWindowDrawList()->AddRectFilled(a, b, ImColor(color), rounding, ImDrawCornerFlags_All);
+		ImGui::GetWindowDrawList()->AddRectFilled(a, b, ImColor(color), rounding, ImDrawFlags_RoundCornersAll);
 	}
 
 	CNI(add_rect_filled)

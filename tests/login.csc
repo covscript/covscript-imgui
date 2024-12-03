@@ -4,7 +4,7 @@ using imgui
 system.file.remove("./imgui.ini")
 var app = window_application(0.75*imgui.get_monitor_width(0), 0.75*imgui.get_monitor_height(0), "CovScript ImGUI测试程序")
 var font = add_font_extend_cn(imgui_font.source_han_sans, 16)
-var img = load_image("./res/covariant_script_wide.bmp")
+var img = load_image("./res/covariant_script_wide.png")
 var window_opened = true
 var username = new string
 var password = new string
@@ -39,7 +39,7 @@ while !app.is_closed()
     pop_item_width()
     text_size = calc_text_size(btn_txt)
     blank((region_width - align_width)/2)
-    if button_s(btn_txt, vec2(align_width, text_size.y + 10)) || is_key_pressed(get_key_index(keys.enter))
+    if button_s(btn_txt, vec2(align_width, text_size.y + 10)) || is_key_pressed(keys.enter)
         title = "欢迎，" + username
     end
 	end_window()
