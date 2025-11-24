@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 
 project(covscript-imgui)
 include_directories(backends)
@@ -6,32 +6,12 @@ include_directories(include)
 include_directories(include/imgui)
 
 if (DEFINED ENV{CS_DEV_PATH})
+    message("-- CovScript SDK detected at $ENV{CS_DEV_PATH}")
+    include("$ENV{CS_DEV_PATH}/csbuild.cmake")
     include_directories($ENV{CS_DEV_PATH}/include)
     link_directories($ENV{CS_DEV_PATH}/lib)
-endif ()
-
-if (DEFINED ENV{CS_DEV_OUTPUT})
-    set(LIBRARY_OUTPUT_PATH $ENV{CS_DEV_OUTPUT})
-    set(EXECUTABLE_OUTPUT_PATH $ENV{CS_DEV_OUTPUT})
-endif ()
-
-# Compiler Options
-set(CMAKE_CXX_STANDARD 14)
-
-if (MSVC)
-    set(CMAKE_CXX_FLAGS "/O2 /EHsc /utf-8 /w")
-    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
-elseif (CMAKE_COMPILER_IS_GNUCXX)
-    if (WIN32)
-        set(CMAKE_C_FLAGS "--static -fPIC -s -O3")
-        set(CMAKE_CXX_FLAGS "--static -fPIC -s -O3")
-    else ()
-        set(CMAKE_C_FLAGS "-fPIC -s -O3")
-        set(CMAKE_CXX_FLAGS "-fPIC -s -O3")
-    endif ()
 else ()
-    set(CMAKE_C_FLAGS "-fPIC -O3")
-    set(CMAKE_CXX_FLAGS "-fPIC -O3")
+    message(FATAL_ERROR "-- CovScript SDK not detected. Please set environment variable CS_DEV_PATH")
 endif ()
 
 set(IMGUI_SOURCE_CODE
