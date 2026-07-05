@@ -236,10 +236,10 @@ CNI_ROOT_NAMESPACE {
 
 	ImFont *add_font_chinese(const string &str, float size)
 	{
-		ImFontConfig font_cfg = ImFontConfig();
-		font_cfg.OversampleH = font_cfg.OversampleV = 1;
-		return ImGui::GetIO().Fonts->AddFontFromFileTTF(str.c_str(), size, &font_cfg,
-		        ImGui::GetIO().Fonts->GetGlyphRangesChineseFull());
+		// v1.92.0+: glyphs are dynamically rasterized on first use (requires RendererHasTextures backend).
+		// CJK characters render correctly, though first use may cause a brief rasterization delay.
+		// For heavy CJK usage, pass GetGlyphRangesChineseSimplifiedCommon() explicitly for pre-baking.
+		return add_font(str, size);
 	}
 
 	CNI(add_font_chinese)
@@ -265,18 +265,17 @@ CNI_ROOT_NAMESPACE {
 
 	ImFont *add_font_extend_cn(const font &f, float size)
 	{
-		ImFontConfig font_cfg = ImFontConfig();
-		font_cfg.OversampleH = font_cfg.OversampleV = 1;
-		ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "%s, %.0fpx", f.name, (float) size);
-		return ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(f.data, size, &font_cfg,
-		        ImGui::GetIO().Fonts->GetGlyphRangesChineseFull());
+		// v1.92.0+: glyphs are dynamically rasterized on first use (requires RendererHasTextures backend).
+		// CJK characters render correctly, though first use may cause a brief rasterization delay.
+		// For heavy CJK usage, pass GetGlyphRangesChineseSimplifiedCommon() explicitly for pre-baking.
+		return add_font_extend(f, size);
 	}
 
 	CNI(add_font_extend_cn)
 
 	void push_font(ImFont *font)
 	{
-		ImGui::PushFont(font);
+		ImGui::PushFont(font, font ? font->LegacySize : 0.0f);
 	}
 
 	CNI(push_font)
@@ -304,7 +303,7 @@ CNI_ROOT_NAMESPACE {
 
 	void set_font_scale(float scale)
 	{
-		ImGui::GetIO().FontGlobalScale = scale;
+		ImGui::GetStyle().FontScaleMain = scale;
 	}
 
 	CNI(set_font_scale)
@@ -1291,8 +1290,8 @@ CNI_ROOT_NAMESPACE {
 
 	void add_rect(const ImVec2 &a, const ImVec2 &b, const ImVec4 &color, float rounding, float thickness)
 	{
-		ImGui::GetWindowDrawList()->AddRect(a, b, ImColor(color), rounding, ImDrawFlags_RoundCornersAll,
-		                                    thickness);
+		// v1.92.8: thickness before flags (ImDrawFlags_RoundCornersAll is default)
+		ImGui::GetWindowDrawList()->AddRect(a, b, ImColor(color), rounding, thickness);
 	}
 
 	CNI(add_rect)

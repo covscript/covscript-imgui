@@ -3,7 +3,7 @@
     "Name": "imgui",
     "Info": "ImGUI Extension Modern Impl",
     "Author": "CovScript Organization",
-    "Version": "1.92.2b_v1",
+    "Version": "1.92.8_v1",
     "Target": "build/imports/imgui.cse",
     "Dependencies": []
 }
