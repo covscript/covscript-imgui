@@ -195,7 +195,6 @@ namespace imgui_cs {
 		void render()
 		{
 			// Rendering
-			ImGui::EndFrame();
 			g_pd3dDevice->SetRenderState(D3DRS_ZENABLE, FALSE);
 			g_pd3dDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
 			g_pd3dDevice->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);

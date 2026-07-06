@@ -1063,7 +1063,7 @@ CNI_ROOT_NAMESPACE {
 
 	float get_column_width(int index)
 	{
-		return ImGui::GetColumnWidth();
+		return ImGui::GetColumnWidth(index);
 	}
 
 	CNI(get_column_width)

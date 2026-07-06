@@ -33,7 +33,7 @@
 #include <tchar.h>
 
 namespace imgui_cs {
-    RECT GetScreenRect(int screen)
+	RECT GetScreenRect(int screen)
 	{
 		DISPLAY_DEVICEW device;
 		device.cb = sizeof(device);
@@ -52,26 +52,26 @@ namespace imgui_cs {
 		return { x, y, x + width, y + height };
 	}
 
-    int get_monitor_count()
-    {
-        return GetSystemMetrics(SM_CMONITORS);
-    }
+	int get_monitor_count()
+	{
+		return GetSystemMetrics(SM_CMONITORS);
+	}
 
-    int get_monitor_width(int monitor_id)
-    {
-        int count = GetSystemMetrics(SM_CMONITORS);
+	int get_monitor_width(int monitor_id)
+	{
+		int count = GetSystemMetrics(SM_CMONITORS);
 		if (monitor_id >= count)
 			throw cs::lang_error("Monitor does not exist.");
 		RECT size = GetScreenRect(monitor_id);
 		return size.right - size.left;
-    }
+	}
 
-    int get_monitor_height(int monitor_id)
-    {
-        int count = GetSystemMetrics(SM_CMONITORS);
+	int get_monitor_height(int monitor_id)
+	{
+		int count = GetSystemMetrics(SM_CMONITORS);
 		if (monitor_id >= count)
 			throw cs::lang_error("Monitor does not exist.");
 		RECT size = GetScreenRect(monitor_id);
 		return size.bottom - size.top;
-    }
+	}
 }
