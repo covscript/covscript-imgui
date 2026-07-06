@@ -8,13 +8,20 @@ var window_opened=true
 var col=vec4(0.5,0.5,0.5,1)
 var radius=50
 var thickness=5
-var delta=10
+var delta=600
 var pos_x=radius+thickness
 var pos_y=radius+thickness+20
 var x_add=true
 var y_add=true
+var last_time=get_time()
 while !app.is_closed()
     app.prepare()
+    var current_time=get_time()
+    var dt=current_time-last_time
+    last_time=current_time
+    if dt > 0.1
+        dt = 0.1
+    end
     begin_window("Main",window_opened,{flags.menu_bar,flags.no_collapse,flags.no_title_bar,flags.no_move,flags.no_resize})
         if !window_opened
             break
@@ -43,33 +50,33 @@ while !app.is_closed()
             color_edit4("Circle Color",col)
             slider_float("Radius",radius,0,100)
             slider_float("Thickness",thickness,0,100)
-            slider_float("Speed",delta,0,100)
-            delta=to_integer(delta)
+            slider_float("Speed (px/s)",delta,0,1000)
             if arrow_button("x_arrow",x_add?dirs.right:dirs.left)
                 x_add=!x_add
             end
             same_line()
-            text("X: "+pos_x)
+            text("X: "+to_integer(pos_x))
             if arrow_button("y_arrow",y_add?dirs.down:dirs.up)
                 y_add=!y_add
             end
             same_line()
-            text("Y: "+pos_y)
+            text("Y: "+to_integer(pos_y))
             tree_pop()
         end
         if is_mouse_clicked(1)
             pos_x=get_mouse_pos_x()
             pos_y=get_mouse_pos_y()
         end
+        var step=delta*dt
         if x_add
-            pos_x+=delta
+            pos_x+=step
         else
-            pos_x-=delta
+            pos_x-=step
         end
         if y_add
-            pos_y+=delta
+            pos_y+=step
         else
-            pos_y-=delta
+            pos_y-=step
         end
         if pos_x<=radius+thickness
             x_add=true

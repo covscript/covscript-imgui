@@ -3,7 +3,7 @@
     "Name": "imgui_sdl",
     "Info": "ImGUI Extension SDL Impl",
     "Author": "CovScript Organization",
-    "Version": "1.92.8_v1.2",
+    "Version": "1.92.8_v1.3",
     "Target": "build/imports/imgui_sdl.cse",
     "Dependencies": []
 }

@@ -26,6 +26,8 @@
 
 #include <imgui.hpp>
 
+#include <vector>
+
 // Common Header
 #include <imgui.h>
 #include <imgui_stdlib.h>
@@ -43,34 +45,6 @@
 #include <imgui_gl3_impl.hpp>
 #endif
 
-namespace imgui_cs {
-	template<typename char_t = char>
-	class buffer final {
-		char_t *buff = nullptr;
-
-	public:
-		buffer() = delete;
-
-		buffer(const buffer &) = delete;
-
-		buffer(buffer &b) noexcept
-		{
-			std::swap(this->buff, b.buff);
-		}
-
-		buffer(std::size_t size) : buff(new char_t[size]) {}
-
-		~buffer()
-		{
-			delete[] buff;
-		}
-
-		char_t *get() const
-		{
-			return buff;
-		}
-	};
-} // namespace imgui_cs
 
 CNI_ROOT_NAMESPACE {
 	using namespace cs;
@@ -736,13 +710,12 @@ CNI_ROOT_NAMESPACE {
 
 	void combo_box(const string &str, numeric &current, const array &items)
 	{
-		const char **_items = new const char *[items.size()];
+		std::vector<const char *> _items(items.size());
 		for (std::size_t i = 0; i < items.size(); ++i)
 			_items[i] = items[i].const_val<string>().c_str();
 		int _current = current.as_integer();
-		ImGui::Combo(str.c_str(), &_current, _items, items.size());
+		ImGui::Combo(str.c_str(), &_current, _items.data(), static_cast<int>(items.size()));
 		current = _current;
-		delete[] _items;
 	}
 
 	CNI(combo_box)
@@ -855,13 +828,12 @@ CNI_ROOT_NAMESPACE {
 
 	void list_box(const string &str, numeric &current, const array &items)
 	{
-		const char **_items = new const char *[items.size()];
+		std::vector<const char *> _items(items.size());
 		for (std::size_t i = 0; i < items.size(); ++i)
 			_items[i] = items[i].const_val<string>().c_str();
 		int _current = current.as_integer();
-		ImGui::ListBox(str.c_str(), &_current, _items, items.size());
+		ImGui::ListBox(str.c_str(), &_current, _items.data(), static_cast<int>(items.size()));
 		current = _current;
-		delete[] _items;
 	}
 
 	CNI(list_box)

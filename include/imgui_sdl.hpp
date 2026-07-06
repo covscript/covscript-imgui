@@ -35,24 +35,22 @@ namespace imgui_cs {
 	// SDL_Texture is bound to a specific SDL_Renderer, so we must use the application's renderer.
 	extern SDL_Renderer *g_SDLRenderer;
 
-	class sdl_instance final {
-	public:
-		sdl_instance()
-		{
+	// Lazy SDL initialization — avoids calling SDL_Init during DLL loading
+	// (which would deadlock on Windows due to the loader lock).
+	inline void ensure_sdl_init()
+	{
+		if (!SDL_WasInit(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER)) {
 			SDL_SetHint(SDL_HINT_IME_SHOW_UI, "1");
 			if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0)
 				throw cs::lang_error("Init SDL2 Error.");
 		}
+	}
 
-		sdl_instance(const sdl_instance &) = delete;
-
-		sdl_instance(sdl_instance &&) noexcept = delete;
-
-		~sdl_instance()
-		{
-			SDL_Quit();
-		}
-	};
+	// Called by ~application(). SDL_Quit only when all active windows are closed.
+	inline void ensure_sdl_quit()
+	{
+		SDL_Quit();
+	}
 
 	class image final {
 		int m_width = 0;
@@ -120,11 +118,13 @@ namespace imgui_cs {
 
 	int get_monitor_count()
 	{
+		ensure_sdl_init();
 		return SDL_GetNumVideoDisplays();
 	}
 
 	int get_monitor_width(int monitor_id)
 	{
+		ensure_sdl_init();
 		SDL_Rect bounds;
 		if (SDL_GetDisplayBounds(monitor_id, &bounds) != 0)
 			throw cs::lang_error("Monitor does not exist.");
@@ -133,6 +133,7 @@ namespace imgui_cs {
 
 	int get_monitor_height(int monitor_id)
 	{
+		ensure_sdl_init();
 		SDL_Rect bounds;
 		if (SDL_GetDisplayBounds(monitor_id, &bounds) != 0)
 			throw cs::lang_error("Monitor does not exist.");

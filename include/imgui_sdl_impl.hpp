@@ -73,6 +73,7 @@ namespace imgui_cs {
 
 		application(std::size_t monitor_id, const std::string &title)
 		{
+			ensure_sdl_init();
 			int count = SDL_GetNumVideoDisplays();
 			int mid = static_cast<int>(monitor_id);
 			if (mid < 0 || mid >= count)
@@ -103,6 +104,7 @@ namespace imgui_cs {
 
 		application(std::size_t width, std::size_t height, const std::string &title)
 		{
+			ensure_sdl_init();
 			int w = static_cast<int>(width);
 			int h = static_cast<int>(height);
 			if (w < 0 || h < 0)
@@ -139,6 +141,7 @@ namespace imgui_cs {
 				SDL_DestroyRenderer(renderer);
 			if (window)
 				SDL_DestroyWindow(window);
+			ensure_sdl_quit();
 		}
 
 		int get_window_width()
@@ -170,7 +173,12 @@ namespace imgui_cs {
 			bg_color = color;
 		}
 
-		bool is_closed()
+		bool is_closed() const
+		{
+			return m_closed;
+		}
+
+		void prepare()
 		{
 			// Pump SDL events to keep the window responsive
 			SDL_Event event;
@@ -181,11 +189,6 @@ namespace imgui_cs {
 				if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(window))
 					m_closed = true;
 			}
-			return m_closed;
-		}
-
-		void prepare()
-		{
 			// Platform backend first, then renderer — matches official ImGui SDL2+SDLRenderer2 examples
 			ImGui_ImplSDL2_NewFrame();
 			ImGui_ImplSDLRenderer2_NewFrame();
@@ -209,6 +212,3 @@ namespace imgui_cs {
 
 // Global renderer for image texture creation
 SDL_Renderer *imgui_cs::g_SDLRenderer = nullptr;
-
-// SDL Instance
-static imgui_cs::sdl_instance sdl_instance;
