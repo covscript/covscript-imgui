@@ -37,12 +37,14 @@ namespace imgui_cs {
 	{
 		DISPLAY_DEVICEW device;
 		device.cb = sizeof(device);
-		BOOL result = EnumDisplayDevicesW(NULL, screen, &device, 0);
+		if (!EnumDisplayDevicesW(NULL, screen, &device, 0))
+			throw cs::lang_error("Monitor does not exist.");
 
 		DEVMODEW device_mode;
 		device_mode.dmSize = sizeof(device_mode);
 		device_mode.dmDriverExtra = 0;
-		result = EnumDisplaySettingsExW(device.DeviceName, ENUM_CURRENT_SETTINGS, &device_mode, 0);
+		if (!EnumDisplaySettingsExW(device.DeviceName, ENUM_CURRENT_SETTINGS, &device_mode, 0))
+			throw cs::lang_error("Monitor does not exist.");
 
 		int x = device_mode.dmPosition.x;
 		int y = device_mode.dmPosition.y;

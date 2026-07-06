@@ -31,18 +31,16 @@
 #include <imgui_stdlib.h>
 #include <imgui_internal.h>
 
-#ifdef IMGUI_IMPL_WIN32
-#ifdef IMGUI_IMPL_DX9
+#if defined(IMGUI_IMPL_SDL2)
+#include <imgui_sdl_impl.hpp>
+#elif defined(IMGUI_IMPL_DX9)
 #include <imgui_dx9_impl.hpp>
-#else
+#elif defined(IMGUI_IMPL_WIN32)
 #include <imgui_dx11_impl.hpp>
-#endif
-#else
-#ifdef IMGUI_IMPL_GL2
+#elif defined(IMGUI_IMPL_GL2)
 #include <imgui_gl2_impl.hpp>
 #else
 #include <imgui_gl3_impl.hpp>
-#endif
 #endif
 
 namespace imgui_cs {

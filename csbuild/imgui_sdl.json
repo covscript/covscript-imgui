@@ -1,9 +1,9 @@
 {
     "Type": "Extension",
-    "Name": "imgui_legacy",
-    "Info": "ImGUI Extension Legacy Impl",
+    "Name": "imgui_sdl",
+    "Info": "ImGUI Extension SDL Impl",
     "Author": "CovScript Organization",
     "Version": "1.92.8_v1.2",
-    "Target": "build/imports/imgui_legacy.cse",
+    "Target": "build/imports/imgui_sdl.cse",
     "Dependencies": []
 }

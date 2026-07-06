@@ -8,6 +8,9 @@ ImGUI Extension for CovScript
        + `imgui_legacy.cse`
      + OpenGL 3.0 Implementation
        + `imgui.cse`
+   + SDL2 Backends
+     + SDL_Renderer Implementation
+       + `imgui_sdl.cse`
  + Native
    + Win32 Backends(Beta)
      + DirectX 9 Implementation

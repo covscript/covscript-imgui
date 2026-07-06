@@ -85,7 +85,6 @@ namespace imgui_cs {
 			// Initialize Direct3D
 			if (!CreateDeviceD3D(hwnd)) {
 				CleanupDeviceD3D();
-				::UnregisterClass(wc.lpszClassName, wc.hInstance);
 				throw cs::lang_error("Failed to initialize DX9 loader.");
 			}
 
@@ -97,12 +96,29 @@ namespace imgui_cs {
 			IMGUI_CHECKVERSION();
 			ImGui::CreateContext();
 			// Setup Platform/Renderer backends
-			ImGui_ImplWin32_Init(hwnd);
-			ImGui_ImplDX9_Init(g_pd3dDevice);
+			if (!ImGui_ImplWin32_Init(hwnd)) {
+				ImGui::DestroyContext();
+				CleanupDeviceD3D();
+				throw cs::lang_error("Failed to init Win32 platform backend!");
+			}
+			if (!ImGui_ImplDX9_Init(g_pd3dDevice)) {
+				ImGui_ImplWin32_Shutdown();
+				ImGui::DestroyContext();
+				CleanupDeviceD3D();
+				throw cs::lang_error("Failed to init DX9 renderer backend!");
+			}
 			ImFontConfig font_cfg = ImFontConfig();
 			ImFormatString(font_cfg.Name, IM_ARRAYSIZE(font_cfg.Name), "DefaultFont, 14px");
-			ImGui::GetIO().FontDefault = ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(
-			                                 get_default_font_data(), 14, &font_cfg);
+			ImFont *font = ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(
+			                   get_default_font_data(), 14, &font_cfg);
+			if (font == nullptr) {
+				ImGui_ImplDX9_Shutdown();
+				ImGui_ImplWin32_Shutdown();
+				ImGui::DestroyContext();
+				CleanupDeviceD3D();
+				throw cs::lang_error("Failed to load default font!");
+			}
+			ImGui::GetIO().FontDefault = font;
 		}
 
 	public:
@@ -121,7 +137,14 @@ namespace imgui_cs {
 			wc = {sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, _T(title.c_str()), NULL};
 			::RegisterClassEx(&wc);
 			hwnd = ::CreateWindow(wc.lpszClassName, _T(title.c_str()), WS_BORDER, size.left, size.top, size.right, size.bottom, NULL, NULL, wc.hInstance, NULL);
-			init();
+			try {
+				init();
+			}
+			catch (...) {
+				::DestroyWindow(hwnd);
+				::UnregisterClass(wc.lpszClassName, wc.hInstance);
+				throw;
+			}
 		}
 
 		application(std::size_t width, std::size_t height, const std::string &title)
@@ -129,7 +152,14 @@ namespace imgui_cs {
 			wc = {sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, _T(title.c_str()), NULL};
 			::RegisterClassEx(&wc);
 			hwnd = ::CreateWindow(wc.lpszClassName, _T(title.c_str()), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, width, height, NULL, NULL, wc.hInstance, NULL);
-			init();
+			try {
+				init();
+			}
+			catch (...) {
+				::DestroyWindow(hwnd);
+				::UnregisterClass(wc.lpszClassName, wc.hInstance);
+				throw;
+			}
 		}
 
 		~application()

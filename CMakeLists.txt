@@ -57,6 +57,34 @@ target_link_libraries(imgui_font_ext covscript imgui)
 target_link_libraries(imgui_ext covscript imgui)
 target_link_libraries(imgui_legacy_ext covscript imgui)
 
+add_library(imgui_sdl_ext SHARED
+    backends/imgui_impl_sdl2.cpp
+    backends/imgui_impl_sdlrenderer2.cpp
+    imgui.cpp)
+target_compile_definitions(imgui_sdl_ext PRIVATE IMGUI_IMPL_SDL2)
+
+if (WIN32)
+    find_package(SDL2 REQUIRED)
+    target_link_libraries(imgui_sdl_ext SDL2::SDL2-static)
+elseif (APPLE)
+    find_package(SDL2 REQUIRED)
+    link_directories("/usr/local/lib")
+    link_directories("/opt/local/lib")
+    find_library(COCOA_LIBS Cocoa)
+    find_library(IOKIT_LIBS IOKit)
+    find_library(COREVIDEO_LIBS CoreVideo)
+    target_link_libraries(imgui_sdl_ext SDL2::SDL2-static ${COCOA_LIBS} ${IOKIT_LIBS} ${COREVIDEO_LIBS})
+else()
+    find_package(SDL2 REQUIRED)
+    target_link_libraries(imgui_sdl_ext SDL2::SDL2-static)
+endif()
+
+target_link_libraries(imgui_sdl_ext covscript imgui)
+
+set_target_properties(imgui_sdl_ext PROPERTIES OUTPUT_NAME imgui_sdl)
+set_target_properties(imgui_sdl_ext PROPERTIES PREFIX "")
+set_target_properties(imgui_sdl_ext PROPERTIES SUFFIX ".cse")
+
 set_target_properties(imgui_font_ext PROPERTIES OUTPUT_NAME imgui_font)
 set_target_properties(imgui_font_ext PROPERTIES PREFIX "")
 set_target_properties(imgui_font_ext PROPERTIES SUFFIX ".cse")
