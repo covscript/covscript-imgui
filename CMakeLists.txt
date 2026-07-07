@@ -76,7 +76,7 @@ elseif (APPLE)
     target_link_libraries(imgui_sdl_ext SDL2::SDL2-static ${COCOA_LIBS} ${IOKIT_LIBS} ${COREVIDEO_LIBS})
 else()
     find_package(SDL2 REQUIRED)
-    target_link_libraries(imgui_sdl_ext SDL2::SDL2-static)
+    target_link_libraries(imgui_sdl_ext SDL2::SDL2)
 endif()
 
 target_link_libraries(imgui_sdl_ext covscript imgui)
