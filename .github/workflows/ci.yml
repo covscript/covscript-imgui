@@ -42,7 +42,7 @@ jobs:
         run: |
           OS="${{ steps.platform.outputs.os }}"
           ARCH="${{ steps.platform.outputs.arch }}"
-          URL="https://github.com/covscript/csbuild/releases/download/${OS}-schedule/covscript-${OS}-${ARCH}.7z"
+          URL="https://github.com/covscript/csbuild/releases/download/${OS}-schedule/covscript-${OS}-${ARCH}-nightly.7z"
           curl -fsSL "$URL" -o sdk.7z
           7z x sdk.7z -y
           mv build covscript-home
