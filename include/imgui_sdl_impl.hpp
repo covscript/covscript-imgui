@@ -198,6 +198,11 @@ namespace imgui_cs {
 		void render()
 		{
 			ImGui::Render();
+			// On HiDPI displays (e.g. macOS Retina), the framebuffer is larger
+			// than the logical window size. Set SDL_RenderSetScale so that
+			// ImGui's logical-coordinate vertices fill the entire framebuffer.
+			const ImVec2 &fb_scale = ImGui::GetIO().DisplayFramebufferScale;
+			SDL_RenderSetScale(renderer, fb_scale.x, fb_scale.y);
 			SDL_SetRenderDrawColor(renderer,
 			                       static_cast<Uint8>(bg_color.x * 255),
 			                       static_cast<Uint8>(bg_color.y * 255),
