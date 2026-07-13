@@ -1,19 +1,49 @@
 # covscript-imgui
-ImGUI Extension for CovScript
+
+Dear ImGui bindings for Covariant Script — create immediate-mode GUI applications.
 
 ## Implementations
- + Cross-platform
-   + GLFW Backends
-     + OpenGL 2.0 Implementation
-       + `imgui_legacy.cse`
-     + OpenGL 3.0 Implementation
-       + `imgui.cse`
-   + SDL2 Backends
-     + SDL_Renderer Implementation
-       + `imgui_sdl.cse`
- + Native
-   + Win32 Backends(Beta)
-     + DirectX 9 Implementation
-       + `imgui_legacy.cse`
-     + DirectX 11 Implementation
-       + `imgui.cse`
+
+### Cross-platform
+
+- **GLFW + OpenGL 3.0** → `imgui.cse`
+- **GLFW + OpenGL 2.0** → `imgui_legacy.cse`
+- **SDL2 + SDL_Renderer** → `imgui_sdl.cse`
+
+### Windows Native (Beta)
+
+- **DirectX 11** → `imgui.cse`
+- **DirectX 9** → `imgui_legacy.cse`
+
+### Font
+
+- **Font loading** → `imgui_font.cse`
+
+## Dependencies
+
+- [Covariant Script](https://github.com/covscript/covscript)
+- GLFW3 and OpenGL (cross-platform backends)
+- SDL2 (SDL backend, optional)
+
+## Build
+
+```bash
+# Ubuntu
+sudo apt install libglfw3-dev libsdl2-dev
+
+# macOS
+brew install glfw sdl2
+
+# Build
+mkdir build && cd build
+cmake ..
+cmake --build .
+```
+
+## Examples
+
+See the [example games](https://github.com/covscript/covscript-imgui/tree/master/examples): breakout, flappy, hanoi, pong, sheep, snake, tetris, and a Vivaldi 2D game engine.
+
+## License
+
+Apache License 2.0 — see [LICENSE](./LICENSE)
