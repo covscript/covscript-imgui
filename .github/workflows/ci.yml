@@ -22,20 +22,22 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
-        with:
-          submodules: recursive
 
-      - name: Set platform
+      - name: Set platform identifiers
         id: platform
         shell: bash
         run: |
           case "${{ runner.os }}" in
-            Linux)   echo "os=ubuntu" >> $GITHUB_OUTPUT; echo "arch=x86_64" >> $GITHUB_OUTPUT ;;
-            macOS)   echo "os=macos" >> $GITHUB_OUTPUT; echo "arch=arm64" >> $GITHUB_OUTPUT ;;
-            Windows) echo "os=windows" >> $GITHUB_OUTPUT; echo "arch=x86_64" >> $GITHUB_OUTPUT ;;
+            Linux)   echo "os=ubuntu" >> "$GITHUB_OUTPUT"
+                     echo "arch=x86_64" >> "$GITHUB_OUTPUT" ;;
+            macOS)   echo "os=macos" >> "$GITHUB_OUTPUT"
+                     echo "arch=arm64" >> "$GITHUB_OUTPUT" ;;
+            Windows) echo "os=windows" >> "$GITHUB_OUTPUT"
+                     echo "arch=x86_64" >> "$GITHUB_OUTPUT" ;;
           esac
 
       - name: Download CovScript SDK
+        id: sdk
         shell: bash
         run: |
           OS="${{ steps.platform.outputs.os }}"
@@ -43,10 +45,29 @@ jobs:
           URL="https://github.com/covscript/csbuild/releases/download/${OS}-schedule/covscript-${OS}-${ARCH}.7z"
           curl -fsSL "$URL" -o sdk.7z
           7z x sdk.7z -y
-          echo "CS_DEV_PATH=$(pwd)/build" >> $GITHUB_ENV
+          mv build covscript-home
+          CS_HOME="${{ github.workspace }}/covscript-home"
+          CS_HOME="${CS_HOME//\\//}"
+          echo "cs_home=${CS_HOME}" >> "$GITHUB_OUTPUT"
+          echo "=== SDK contents ==="
+          ls -la covscript-home/
+
+      - name: Install system dependencies (Linux)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: sudo apt-get update && sudo apt-get install -y libglfw3-dev libsdl2-dev
+
+      - name: Install system dependencies (macOS)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: brew install glfw sdl2
 
       - name: Configure
+        shell: bash
+        env:
+          CS_DEV_PATH: ${{ steps.sdk.outputs.cs_home }}/
         run: cmake -S . -B cmake-build
 
       - name: Build
+        shell: bash
         run: cmake --build cmake-build
