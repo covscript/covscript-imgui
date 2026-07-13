@@ -49,25 +49,42 @@ jobs:
           CS_HOME="${{ github.workspace }}/covscript-home"
           CS_HOME="${CS_HOME//\\//}"
           echo "cs_home=${CS_HOME}" >> "$GITHUB_OUTPUT"
-          echo "=== SDK contents ==="
-          ls -la covscript-home/
 
-      - name: Install system dependencies (Linux)
+      - name: Setup MSYS2 (Windows)
+        if: runner.os == 'Windows'
+        id: msys2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: >-
+            mingw-w64-ucrt-x86_64-toolchain
+            mingw-w64-ucrt-x86_64-cmake
+            mingw-w64-ucrt-x86_64-make
+
+      - name: Install system deps (Linux)
         if: runner.os == 'Linux'
         shell: bash
         run: sudo apt-get update && sudo apt-get install -y libglfw3-dev libsdl2-dev
 
-      - name: Install system dependencies (macOS)
+      - name: Install system deps (macOS)
         if: runner.os == 'macOS'
         shell: bash
         run: brew install glfw sdl2
 
-      - name: Configure
+      - name: Build (Linux / macOS)
+        if: runner.os != 'Windows'
         shell: bash
         env:
           CS_DEV_PATH: ${{ steps.sdk.outputs.cs_home }}/
-        run: cmake -S . -B cmake-build
+        run: bash csbuild/make.sh
 
-      - name: Build
+      - name: Build (Windows)
+        if: runner.os == 'Windows'
         shell: bash
-        run: cmake --build cmake-build
+        env:
+          MSYS2_LOCATION: ${{ steps.msys2.outputs.msys2-location }}
+        run: |
+          export PATH="${{ steps.msys2.outputs.msys2-location }}/ucrt64/bin:${PATH}"
+          export CS_DEV_PATH="$(cygpath -u "${{ steps.sdk.outputs.cs_home }}")/"
+          bash csbuild/make.sh
